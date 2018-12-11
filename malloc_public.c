@@ -1,6 +1,9 @@
 #include <string.h>
 #include <pthread.h>
 #include "malloc_private.h"
+#ifdef calloc
+# undef calloc
+#endif
 
 mstate_t	mp;
 
@@ -11,12 +14,12 @@ void	*malloc(size_t size)
 
 	if (mp.malloc_init < 1)
 		int_malloc_init();
-	arena = get_arena();
+	arena = arena_get();
 	if (arena == (marena_t *)0)
 		return ((void *)0);
-	mutex_lock(arena->mutex);
-	victim = int_malloc(size);
-	mutex_unlock(arena->mutex);
+	pthread_mutex_lock(&arena->mutex);
+	victim = int_malloc(arena, size);
+	pthread_mutex_unlock(&arena->mutex);
 	return (victim);
 }
 
@@ -28,7 +31,8 @@ void	free(void *mem)
 void	*realloc(void *mem, size_t size)
 {
 	if (mem == (void *)0)
-		return (malloc(size));	
+		return (malloc(size));
+	return ((void *)0);
 }
 
 /*
@@ -36,7 +40,7 @@ void	*realloc(void *mem, size_t size)
 ** The allocated memory is filled with bytes of value zero.
 */
 
-void	calloc(size_t count, size_t size)
+void	*calloc(size_t count, size_t size)
 {
 	size_t	total;
 	void	*victim;
@@ -47,7 +51,7 @@ void	calloc(size_t count, size_t size)
 	return (memset(victim, 0, total));
 }
 
-void	reallocf(void *mem, size_t size)
+void	*reallocf(void *mem, size_t size)
 {
 	void	*victim;
 

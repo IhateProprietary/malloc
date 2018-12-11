@@ -1,58 +1,48 @@
 #include <stddef.h>
 #include "malloc_private.h"
 
-mchunk_t	*alloc_partial_chunk(marena_t *arena, mchunk_t *chunk, size_t size)
+void	set_link_chunk(mchunk_t *next, bin_t *connect)
 {
-	mchunk_t	*adj;
+	mchunk_t	*head;
+
+	head = *connect;
+	*connect = next;
+	next->fd = head ? head : next;
+	if (head && head->fd == head)
+		head->fd = next;
+	next->bk = head ? head->bk : next;
+	if (head && head->bk == head)
+		head->bk = next;
+}
+
+void	alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t *connect)
+{
 	mchunk_t	*next;
 	size_t		chunksize;
 	size_t		nextsize;
-	
-	if ((adj = chunk->fd) == 0)
-		adj->bk = chunk->bk;
-	if ((adj = chunk->bk) == 0)
-		adj->fd = chunk->fd;
+
 	if (chunk->size == size)
-		return (chunk);
-	next = (char *)chunk + size;
+		return ;
+	next = (mchunk_t *)(((char *)chunk) + size);
 	chunksize = chunk->size;
 	nextsize = chunksize - size;
 	if (nextsize < M_MINSIZE)
-		return ((mchunk_t *)0);
-	chunk->size = size;
-	next->size = nextsize;
-	adj = arena->unsorted_bin;
-	arena->unsorted_bin = next;
-	connect_chunk(next, adj);
-	return (chunk);
-}
-
-void	connect_chunk(mchunk_t *new, mchunk_t *old)
-{
-	if (old)
-	{
-		new->fd = old;
-		if (old->fd == old)
-			old->fd = new;
-		new->bk = old->bk;
-		old->bk = new;
-	}
-	else
-	{
-		new->fd = new;
-		new->bk = new;
-	}
+		return ;
+	chunk->size = size + (chunksize & SIZE_FLAGS);
+	next->size = nextsize | SIZE_PREV_INUSE;
+	if (connect)
+		set_link_chunk(next, connect);
 }
 
 mchunk_t	*alloc_newchunk(marena_t *arena, size_t size)
 {
 	mchunk_t	*chunk;
+	mchunk_t	*nextchunk;
 	size_t		remainder;
 
-	remainder = (char *)arena + arena->size - arena->bottom;
-	if (remainder < size)
+	chunk = arena->bottom;
+	if ((chunk->size & ~SIZE_FLAGS) < size)
 		return ((mchunk_t *)0);
-	arena->bottom += size;
-	chunk->size = size;
+	alloc_partial_chunk(chunk, size, (bin_t *)0);
 	return (chunk);
 }

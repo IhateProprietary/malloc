@@ -11,10 +11,10 @@ int		int_malloc_init()
 		mp.malloc_init = 1;
 		return (1);
 	}
-	if ((arena = arena_new(DEFAULT_MMAP_SIZE)) != (marena_t *)0)
+	if ((arena = arena_new(HEAP_SIZE)) != (marena_t *)0)
 	{
 		mp.malloc_init = 1;
-		pthread_key_destroy(&mp.tsd);
+		pthread_key_delete(mp.tsd);
 		return (1);
 	}
 	pthread_setspecific(mp.tsd, arena);
@@ -22,5 +22,6 @@ int		int_malloc_init()
 	mp.mmap = 1;
 	mp.narena = 1;
 	mp.malloc_init = 2;
+	mp.pagesize = sysconf(_SC_PAGESIZE);
 	return (0);
 }
