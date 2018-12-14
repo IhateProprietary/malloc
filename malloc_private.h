@@ -17,17 +17,25 @@
 #  define MAP_NORESERVE MAP_NOCACHE
 # endif
 # define SIZE_PREV_INUSE	0x1
-# define SIZE_IS_MMAPED		0x2
-# define SIZE_FLAGS			(SIZE_PREV_INUSE | SIZE_IS_MMAPED)
+# define SIZE_IS_MAPPED		0x2
+# define SIZE_FLAGS			(SIZE_PREV_INUSE | SIZE_IS_MAPPED)
+# define CHUNKFLAGS(x)		((x)->size & SIZE_FLAGS)
+# define CHUNKSIZE(x)		((x)->size & ~SIZE_FLAGS)
+# define UCHUNKSIZE(x)		((x) & ~SIZE_FLAGS)
+# define UCHUNKFLAGS(x)		((x) & SIZE_FLAGS)
+
+# define SETOPT(x, opt)		((x)->size |= (opt))
+# define UNSETOPT(x, opt)	((x)->size &= ~(opt))
+# define SETNEXTOPT(x, opt)		(SETOPT((NEXTCHUNK(x)), (opt)))
+# define UNSETNEXTOPT(x, opt)	(UNSETOPT((NEXTCHUNK(x)), (opt)))
+# define NEXTCHUNK(x)	((mchunk_t *)((unsigned long)(x) + (x)->size))
 
 # define MMAP_FLAGS (MAP_ANONYMOUS | MAP_PRIVATE)
 # define MPROT_FLAGS (PROT_WRITE | PROT_READ)
-# define MMAP(a, s, prot, flags) mmap(a, s, prot, flags, -1, 0)
-# define NEW_HEAP(s) MMAP(0, s, MPROT_FLAGS, MMAP_FLAGS)
+# define MMAP(a, s, prot, flags) (mmap(a, s, prot, flags, -1, 0))
+# define NEW_HEAP(s) (MMAP(0, s, MPROT_FLAGS, MMAP_FLAGS))
 
 # define HEAP_SIZE			(1024 * 1024)
-# define REMAP_SIZE			(64 *1024)
-# define REMAP_SIZE_MASK	(REMAP_SIZE - 1)
 # define MMAP_THRESHOLD		(128 * 1024)
 # define TRIM_SIZE			(128 * 1024)
 
@@ -35,24 +43,29 @@
 # define M_MINSIZE			(sizeof(mchunk_t))
 # define M_ALIGN_MASK		(M_ALIGNEMENT - 1)
 # define SIZE_SZ			__SIZEOF_SIZE_T__
-# define CHUNK2MEM(ptr)		(((void *)ptr) + SIZE_SZ * 2)
-# define MEM2CHUNK(ptr)		(((void *)ptr) - SIZE_SZ * 2)
+# define CHUNK2MEM(ptr)		(((void *)(ptr)) + SIZE_SZ * 2)
+# define MEM2CHUNK(ptr)		(((void *)(ptr)) - SIZE_SZ * 2)
+# define MEM2ARENA(ptr)		((void *)((unsigned long)(ptr) & ~(HEAP_SIZE - 1)))
 # define REQCHECK(x)		((x) < M_MINSIZE)
 # define REQALIGN(x)		((x) + SIZE_SZ + M_ALIGN_MASK & ~(M_ALIGN_MASK))
 # define REQ2SIZE(req)		(REQCHECK(req) ? M_MINSIZE : REQALIGN(req))
+# define PREVINUSE(c)		((c)->size & SIZE_PREV_INUSE)
 
 # define ARENA_SHOULD_TRIM			0x1
 # define ARENA_SHOULD_CONSOLIDATE	0x2
+# define ARENA_MARK_FOR_DELETION	0x4
 
 # define NFASTBINS	10
 # define NSMALLBINS	64
 # define NBINS		128
 
-# define LARGEBIN_MINSIZE (NSMALLBINS << 3)
+# define FASTBIN_MAXSIZE	(8 * NFASTBINS)
+# define FASTBIN_MAXMEM		(64 * 1024)
+# define LARGEBIN_MINSIZE	(NSMALLBINS << 3)
 
 # define FASTBIN_INDEX(x) ((x) >> 3)
 # define SMALLBIN_INDEX(x) (FASTBIN_INDEX(x) - 1)
-# define LARGEBIN1_INDEX(x) (((x) >> 6) + NSMALLBINS - 1)
+# define LARGEBIN1_INDEX(x) (((x) >> 6) + NSMALLBINS)
 # define LARGEBIN2_INDEX(x) (((x) >> 9) + NSMALLBINS + 31)
 # define LARGEBIN3_INDEX(x) (((x) >> 12) + NSMALLBINS + 47)
 # define LARGEBIN4_INDEX(x) (((x) >> 15) + NSMALLBINS + 55)
@@ -65,7 +78,7 @@
 # define BIN_INDEX3(x) TER(((x) >> 9) <= 16, LARGEBIN2_INDEX(x), BIN_INDEX4(x))
 # define BIN_INDEX4(x) TER(((x) >> 12) <= 8, LARGEBIN3_INDEX(x), BIN_INDEX5(x))
 # define BIN_INDEX5(x) TER(((x) >> 15) <= 4, LARGEBIN4_INDEX(x), BIN_INDEX6(x))
-# define BIN_INDEX6(x) LARGEBIN5_INDEX(x)
+# define BIN_INDEX6(x) TER(((x) >> 18) <= 2, LARGEBIN5_INDEX(x), 126)
 # define LARGEBIN_INDEX(x) BIN_INDEX2(x)
 # define BIN_INDEX(x) BIN_INDEX1(x)
 
@@ -83,9 +96,6 @@ extern mstate_t	mp;
 struct	malloc_state_s
 {
 	marena_t	*arena;
-	size_t		trylock;
-	size_t		lock;
-	size_t		unlock;
 	size_t		malloc;
 	size_t		free;
 	size_t		mmap;
@@ -93,6 +103,7 @@ struct	malloc_state_s
 	size_t		narena;
 	size_t		used;
 	size_t		pagesize;
+	mutex_t		global;
 	key_t		tsd;
 	int			malloc_init;
 };
@@ -104,10 +115,10 @@ struct	malloc_arena_s
 	size_t	pagesize;
 	size_t	size;
 	size_t	used;
-	size_t	unused;
 	size_t	flags;
+	size_t	fastbinsize;
 	bin_t	fastbins[NFASTBINS];
-	bin_t	bins[NBINS - 2];
+	bin_t	bins[NBINS - 1];
 	bin_t	unsortedbin;
 	void	*topmost;
 	void	*bottom;
@@ -115,22 +126,24 @@ struct	malloc_arena_s
 
 struct	malloc_chunk_s
 {
-	size_t		prev_size;
+	size_t		prevsize;
 	size_t		size;
 	mchunk_t	*fd;
 	mchunk_t	*bk;
 };
 
-marena_t	*arena_new(size_t size);
+marena_t	*arena_new();
 int			arena_shrunk(marena_t *arena, size_t size);
 int			arena_grow(marena_t *arena, size_t size);
 marena_t	*arena_get();
 
-int			int_malloc_init();
+void		int_malloc_init();
 void		*int_malloc(marena_t *arena, size_t size);
+void		int_free(void *ptr);
 
 void		alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t *connect);
-void		set_link_chunk(mchunk_t *next, bin_t *connect);
+void		link_chunk(mchunk_t *next, bin_t *connect);
+mchunk_t	*alloc_largebin(marena_t *arena, size_t size);
 mchunk_t	*alloc_newchunk(marena_t *arena, size_t size);
 
 mchunk_t	*alloc_unsortedbin(marena_t *arena, size_t size);

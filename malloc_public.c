@@ -1,4 +1,3 @@
-#include <string.h>
 #include <pthread.h>
 #include "malloc_private.h"
 #ifdef calloc
@@ -25,7 +24,14 @@ void	*malloc(size_t size)
 
 void	free(void *mem)
 {
+	mchunk_t	*chunk;
 
+	if (mem == (void *)0)
+		return ;
+	chunk = MEM2CHUNK(mem);
+	if (chunk->size & SIZE_IS_MAPPED)
+		munmap((void *)chunk, chunk->size);
+	int_free(mem);
 }
 
 void	*realloc(void *mem, size_t size)

@@ -13,6 +13,7 @@ static mchunk_t	*alloc_fastbin(marena_t *arena, size_t size)
 	if (chunk == (mchunk_t *)0)
 		return ((mchunk_t *)0);
 	arena->fastbins[index] = chunk->fd;
+	printf("FASTBIN %lu\n", size);
 	return (chunk);
 }
 
@@ -25,40 +26,21 @@ static mchunk_t	*alloc_smallbin(marena_t *arena, size_t size)
 	if (size >= LARGEBIN_MINSIZE)
 		return ((mchunk_t *)0);
 	index = SMALLBIN_INDEX(size);
-	chunk = arena->bins[index];
+	while (index < (NSMALLBINS) &&
+		   ((chunk = arena->bins[index]) == (mchunk_t *)0))
+		index++;
 	if (chunk == (mchunk_t *)0)
 		return ((mchunk_t *)0);
 	next = chunk->fd;
 	next->bk = chunk->bk;
-	arena->bins[index] = next;
-	return (chunk);
-}
-
-static mchunk_t *alloc_largebin(marena_t *arena, size_t size)
-{
-	mchunk_t	*chunk;
-	mchunk_t	*stop;
-	int			index;
-
-	index = LARGEBIN_INDEX(size);
-	chunk = (mchunk_t *)0;
-	while (index < (NBINS - 2) &&
-			((chunk = arena->bins[index]) == (mchunk_t *)0))
-		index++;
-	if (chunk == (mchunk_t *)0)
-		return ((mchunk_t *)0);
-	stop = chunk->bk;
-	while (chunk->size < size && chunk != stop)
-		chunk = chunk->fd;
-	if (chunk->size < size)
-		return ((mchunk_t *)0);
-	stop = chunk->fd;
-	stop->bk = chunk->bk;
+	if (next->fd == chunk)
+		next->fd = next;
 	if (chunk == arena->bins[index])
 		arena->bins[index] = chunk->fd;
 	if (chunk == arena->bins[index])
 		arena->bins[index] = (mchunk_t *)0;
 	alloc_partial_chunk(chunk, size, &arena->unsortedbin);
+	printf("SMALLBIN %lu idx %d\n", size, index);
 	return (chunk);
 }
 
@@ -69,12 +51,14 @@ static mchunk_t	*alloc_mmap(size_t size)
 	size_t		pagemask;
 	size_t		mmapsize;
 
+
+	printf("MMAP %lu\n", size);
 	pagemask = mp.pagesize - 1;
 	mmapsize = (size + pagemask) & ~pagemask;
 	if ((mem = NEW_HEAP(mmapsize)) == (void *)MAP_FAILED)
 		return ((mchunk_t *)0);
 	chunk = mem;
-	chunk->size = mmapsize | SIZE_IS_MMAPED;
+	chunk->size = mmapsize | SIZE_IS_MAPPED;
 	return (mem);
 }
 
@@ -84,6 +68,7 @@ void	*int_malloc(marena_t *arena, size_t size)
 	size_t		alignsize;
 
 	alignsize = REQ2SIZE(size);
+	printf("arena %p alloc 0x%lx\n", arena, alignsize);
 	if (alignsize >= MMAP_THRESHOLD)
 	{
 		if ((chunk = alloc_mmap(alignsize)))

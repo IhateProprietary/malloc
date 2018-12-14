@@ -1,18 +1,43 @@
 #include <stddef.h>
 #include "malloc_private.h"
 
-void	set_link_chunk(mchunk_t *next, bin_t *connect)
+void	link_chunk(mchunk_t *chunk, bin_t *bin)
 {
 	mchunk_t	*head;
 
-	head = *connect;
-	*connect = next;
-	next->fd = head ? head : next;
+	head = *bin;
+	if (head == chunk)
+		return ;
+	*bin = chunk;
+	chunk->fd = head ? head : chunk;
+	chunk->bk = head ? head->bk : chunk;
 	if (head && head->fd == head)
-		head->fd = next;
-	next->bk = head ? head->bk : next;
-	if (head && head->bk == head)
-		head->bk = next;
+	{
+		head->fd = chunk;
+		head->bk = chunk;
+	}
+}
+
+void	unlink_chunk(mchunk_t *chunk, bin_t *bin)
+{
+	mchunk_t *head;
+	mchunk_t *tmp;
+
+	head = *bin;
+	if (chunk == head)
+	{
+		head = chunk->fd;
+		*bin = head;
+	}
+	if (chunk == head)
+	{
+		*bin = (mchunk_t *)0;
+		return ;
+	}
+	tmp = chunk->fd;
+	tmp->bk = chunk->bk;
+	if (tmp->fd == chunk)
+		tmp->fd = tmp;
 }
 
 void	alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t *connect)
@@ -23,26 +48,34 @@ void	alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t *connect)
 
 	if (chunk->size == size)
 		return ;
-	next = (mchunk_t *)(((char *)chunk) + size);
+	next = (mchunk_t *)((unsigned long)chunk + size);
 	chunksize = chunk->size;
-	nextsize = chunksize - size;
+	nextsize = UCHUNKSIZE(chunksize) - size;
 	if (nextsize < M_MINSIZE)
+	{
+		printf("NODIVIDE chunk %p size 0x%lx req 0x%lx\n", chunk, chunk->size, size);
+		next = (mchunk_t *)((unsigned long)chunk + UCHUNKSIZE(chunksize));
+		next->size |= SIZE_PREV_INUSE;
+		printf("next %p size 0x%lx\n", next, next->size);
 		return ;
-	chunk->size = size + (chunksize & SIZE_FLAGS);
+	}
+	printf("DIVIDE chunk %p from 0x%lx to 0x%lx\n", chunk, chunk->size, size);
+	chunk->size = size + UCHUNKFLAGS(chunksize);
 	next->size = nextsize | SIZE_PREV_INUSE;
 	if (connect)
-		set_link_chunk(next, connect);
+		link_chunk(next, connect);
 }
 
 mchunk_t	*alloc_newchunk(marena_t *arena, size_t size)
 {
 	mchunk_t	*chunk;
-	mchunk_t	*nextchunk;
-	size_t		remainder;
 
 	chunk = arena->bottom;
-	if ((chunk->size & ~SIZE_FLAGS) < size)
+	if (CHUNKSIZE(chunk) < size)
 		return ((mchunk_t *)0);
 	alloc_partial_chunk(chunk, size, (bin_t *)0);
+	arena->bottom += size;
+	arena->used += size;
+	printf("NEWCHUNK %lu %p\n", size, chunk);
 	return (chunk);
 }
