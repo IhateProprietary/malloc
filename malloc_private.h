@@ -28,7 +28,8 @@
 # define UNSETOPT(x, opt)	((x)->size &= ~(opt))
 # define SETNEXTOPT(x, opt)		(SETOPT((NEXTCHUNK(x)), (opt)))
 # define UNSETNEXTOPT(x, opt)	(UNSETOPT((NEXTCHUNK(x)), (opt)))
-# define NEXTCHUNK(x)	((mchunk_t *)((unsigned long)(x) + (x)->size))
+# define NEXTCHUNK(x)	((mchunk_t *)((unsigned long)(x) + CHUNKSIZE(x)))
+# define PREVCHUNK(x)	((mchunk_t *)((unsigned long)(x) - (x)->prevsize))
 
 # define MMAP_FLAGS (MAP_ANONYMOUS | MAP_PRIVATE)
 # define MPROT_FLAGS (PROT_WRITE | PROT_READ)
@@ -53,7 +54,6 @@
 
 # define ARENA_SHOULD_TRIM			0x1
 # define ARENA_SHOULD_CONSOLIDATE	0x2
-# define ARENA_MARK_FOR_DELETION	0x4
 
 # define NFASTBINS	10
 # define NSMALLBINS	64
@@ -72,6 +72,8 @@
 # define LARGEBIN5_INDEX(x) (((x) >> 18) + NSMALLBINS + 59)
 
 # define TER(cond, if_, else_) ((cond) ? (if_) : (else_))
+
+# define MIN(x, y) TER(x < y, x, y)
 
 # define BIN_INDEX1(x) TER(x < (64 << 3), SMALLBIN_INDEX(x), BIN_INDEX2(x))
 # define BIN_INDEX2(x) TER(((x) >> 6) <= 32, LARGEBIN1_INDEX(x), BIN_INDEX3(x))
@@ -114,7 +116,6 @@ struct	malloc_arena_s
 	mutex_t	mutex;
 	size_t	pagesize;
 	size_t	size;
-	size_t	used;
 	size_t	flags;
 	size_t	fastbinsize;
 	bin_t	fastbins[NFASTBINS];
@@ -142,7 +143,8 @@ void		*int_malloc(marena_t *arena, size_t size);
 void		int_free(void *ptr);
 
 void		alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t *connect);
-void		link_chunk(mchunk_t *next, bin_t *connect);
+void		link_chunk(mchunk_t *chunk, bin_t *bin);
+void		unlink_chunk(mchunk_t *chunk, bin_t *bin);
 mchunk_t	*alloc_largebin(marena_t *arena, size_t size);
 mchunk_t	*alloc_newchunk(marena_t *arena, size_t size);
 

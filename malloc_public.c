@@ -1,10 +1,34 @@
 #include <pthread.h>
 #include "malloc_private.h"
-#ifdef calloc
-# undef calloc
-#endif
 
 mstate_t	mp;
+
+static void *malloc2(size_t size)
+{
+	marena_t	*arena;
+	void		*victim;
+
+	victim = (void *)0;
+	arena = mp.arena;
+	pthread_mutex_lock(&mp.global);
+	while (arena && victim == (void *)0)
+	{
+		pthread_mutex_lock(&arena->mutex);
+		victim = int_malloc(arena, size);
+		pthread_mutex_unlock(&arena->mutex);
+		arena = arena->next;
+	}
+	if (victim == (void *)0 && (arena = arena_new()) != (marena_t *)0)
+	{
+		victim = int_malloc(arena, size);
+		arena->next = mp.arena;
+		mp.arena = arena;
+	}
+	if (arena)
+		pthread_setspecific(mp.tsd, (void *)arena);
+	pthread_mutex_unlock(&mp.global);
+	return (victim);
+}
 
 void	*malloc(size_t size)
 {
@@ -19,6 +43,8 @@ void	*malloc(size_t size)
 	pthread_mutex_lock(&arena->mutex);
 	victim = int_malloc(arena, size);
 	pthread_mutex_unlock(&arena->mutex);
+	if (victim == (void *)0)
+		victim = malloc2(size);
 	return (victim);
 }
 
@@ -36,9 +62,19 @@ void	free(void *mem)
 
 void	*realloc(void *mem, size_t size)
 {
+	void		*victim;
+	mchunk_t	*chunk;
+
 	if (mem == (void *)0)
 		return (malloc(size));
-	return ((void *)0);
+	victim = int_realloc(mem, size);
+	if (victim == (void *)0 && (victim = malloc(size)))
+	{
+		chunk = MEM2CHUNK(mem);
+		memcpy(mem, victim, MIN(chunk->size, REQ2SIZE(size)) - SIZE_SZ);
+		free(mem);
+	}
+	return (victim);
 }
 
 /*

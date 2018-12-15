@@ -44,7 +44,6 @@ marena_t	*arena_new()
 	offset = (unsigned long)top - (unsigned long)new;
 	new->topmost = top;
 	new->bottom = top;
-	new->used = offset;
 	((mchunk_t *)top)->size = (HEAP_SIZE - offset) | SIZE_PREV_INUSE;
 	return (new);
 }
@@ -59,8 +58,7 @@ marena_t	*arena_get()
 		arena = mp.arena;
 		while (arena)
 		{
-			if (!(arena->flags & ARENA_MARK_FOR_DELETION) &&
-				pthread_mutex_trylock(&arena->mutex) == 0)
+			if (pthread_mutex_trylock(&arena->mutex) == 0)
 				break ;
 			arena = arena->next;
 		}

@@ -1,17 +1,18 @@
 #include <pthread.h>
 #include "malloc_private.h"
 
-mchunk_t	*consolidate_chunk(marena_t *arena, mchunk_t *chunk)
+static mchunk_t	*consolidate_chunk(marena_t *arena, mchunk_t *chunk)
 {
 	mchunk_t	*prev;
-	mchunk_t	*tmp;
-	int			idx;
 
-	prev = (mchunk_t *)((unsigned long)chunk - chunk->prevsize);
+	prev = PREVCHUNK(chunk);
 	printf("CONSOLIDATE chunk1 %p size 0x%lx prev_chunk %p size 0x%lx\n", chunk, chunk->size, prev, prev->size);
-	idx = BIN_INDEX(prev->size);
-	unlink_chunk(prev, &arena->bins[idx]);
+	if (chunk == arena->unsortedbin)
+		unlink_chunk(chunk, &arena->unsortedbin);
+	else
+		unlink_chunk(chunk, &arena->bins[BIN_INDEX(prev->size)]);
 	prev->size += chunk->size;
+	printf("CONSOLIDATE END -- prev_chunk %p size 0x%lx\n", prev, prev->size);
 	return (prev);
 }
 
@@ -43,7 +44,7 @@ void	int_free(void *ptr)
 		pthread_mutex_unlock(&arena->mutex);
 		return ;
 	}
-	next = (mchunk_t *)((unsigned long)chunk + size);
+	next = NEXTCHUNK(chunk);
 	if (!PREVINUSE(chunk))
 		chunk = consolidate_chunk(arena, chunk);
 	printf("next CLEAR BIT SIZE_PREV_INUSE %p\n", next);
