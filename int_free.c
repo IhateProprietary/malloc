@@ -1,7 +1,7 @@
 #include <pthread.h>
 #include "malloc_private.h"
 
-static mchunk_t	*consolidate_chunk(marena_t *arena, mchunk_t *chunk)
+mchunk_t	*consolidate_chunk(marena_t *arena, mchunk_t *chunk)
 {
 	mchunk_t	*prev;
 
@@ -36,6 +36,7 @@ void	int_free(void *ptr)
 	chunk = MEM2CHUNK(ptr);
 	arena = MEM2ARENA(ptr);
 	pthread_mutex_lock(&arena->mutex);
+	unlink_chunk(chunk, &arena->pool);
 	size = CHUNKSIZE(chunk);
 	printf("free chunk %p size 0x%lx\n", chunk, size);
 	if (size <= FASTBIN_MAXSIZE)

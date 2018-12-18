@@ -6,7 +6,6 @@ void	grow_chunk(marena_t *arena, mchunk_t *chunk, size_t size)
 	mchunk_t	*next;
 	mchunk_t	*prev;
 	void		*heapmax;
-	size_t		prevsize;
 	size_t		cursize;
 
 	next = NEXTCHUNK(chunk);
@@ -40,7 +39,7 @@ void	*int_realloc(void *mem, size_t size)
 
 	chunk = MEM2CHUNK(mem);
 	arena = MEM2ARENA(mem);
-	alignsize = REQ2SIZE(size);
+	alignsize = REQ2SIZE(size, alignsize);
 	printf("TRY REALLOC MEM %p SIZE 0x%lx for size 0x%lx %lu\n", chunk, chunk->size, alignsize, alignsize);
 	pthread_mutex_lock(&arena->mutex);
 	chunksize = CHUNKSIZE(chunk);

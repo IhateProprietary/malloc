@@ -44,12 +44,12 @@
 # define M_MINSIZE			(sizeof(mchunk_t))
 # define M_ALIGN_MASK		(M_ALIGNEMENT - 1)
 # define SIZE_SZ			__SIZEOF_SIZE_T__
-# define CHUNK2MEM(ptr)		(((void *)(ptr)) + SIZE_SZ * 2)
-# define MEM2CHUNK(ptr)		(((void *)(ptr)) - SIZE_SZ * 2)
+# define CHUNK2MEM(ptr)		(((void *)(ptr)) + SIZE_SZ * 4)
+# define MEM2CHUNK(ptr)		(((void *)(ptr)) - SIZE_SZ * 4)
 # define MEM2ARENA(ptr)		((void *)((unsigned long)(ptr) & ~(HEAP_SIZE - 1)))
 # define REQCHECK(x)		((x) < M_MINSIZE)
-# define REQALIGN(x)		((x) + SIZE_SZ + M_ALIGN_MASK & ~(M_ALIGN_MASK))
-# define REQ2SIZE(req)		(REQCHECK(req) ? M_MINSIZE : REQALIGN(req))
+# define REQALIGN(x)		((x) + (SIZE_SZ * 3) + M_ALIGN_MASK & ~(M_ALIGN_MASK))
+# define REQ2SIZE(req, nb)	(REQCHECK((nb = REQALIGN(req))) ? M_MINSIZE : nb)
 # define PREVINUSE(c)		((c)->size & SIZE_PREV_INUSE)
 
 # define ARENA_SHOULD_TRIM			0x1
@@ -105,6 +105,7 @@ struct	malloc_state_s
 	size_t		narena;
 	size_t		used;
 	size_t		pagesize;
+	bin_t		pool;
 	mutex_t		global;
 	key_t		tsd;
 	int			malloc_init;
@@ -115,12 +116,11 @@ struct	malloc_arena_s
 	struct malloc_arena_s	*next;
 	mutex_t	mutex;
 	size_t	pagesize;
-	size_t	size;
-	size_t	flags;
 	size_t	fastbinsize;
 	bin_t	fastbins[NFASTBINS];
 	bin_t	bins[NBINS - 1];
 	bin_t	unsortedbin;
+	bin_t	pool;
 	void	*topmost;
 	void	*bottom;
 };
@@ -149,5 +149,6 @@ mchunk_t	*alloc_largebin(marena_t *arena, size_t size);
 mchunk_t	*alloc_newchunk(marena_t *arena, size_t size);
 
 mchunk_t	*alloc_unsortedbin(marena_t *arena, size_t size);
+mchunk_t	*consolidate_chunk(marena_t *arena, mchunk_t *chunk);
 
 #endif

@@ -4,24 +4,32 @@
 void	link_chunk(mchunk_t *chunk, bin_t *bin)
 {
 	mchunk_t	*head;
+	mchunk_t	*bk;
+	mchunk_t	*fd;
 
 	head = *bin;
 	if (head == chunk)
 		return ;
 	*bin = chunk;
-	chunk->fd = TER(head, head, chunk);
-	chunk->bk = TER(head, head->bk, chunk);
-	if (head && head->fd == head)
+	if (head)
 	{
-		head->fd = chunk;
-		head->bk = chunk;
+		bk = head->bk;
+		fd = head;
 	}
+	else
+	{
+		bk = chunk;
+		fd = chunk;
+	}
+	chunk->fd = fd;
+	chunk->bk = bk;
 }
 
 void	unlink_chunk(mchunk_t *chunk, bin_t *bin)
 {
 	mchunk_t *head;
-	mchunk_t *tmp;
+	mchunk_t	*bk;
+	mchunk_t	*fd;
 
 	head = *bin;
 	if (chunk == head)
@@ -33,10 +41,12 @@ void	unlink_chunk(mchunk_t *chunk, bin_t *bin)
 			return ;
 		}
 	}
-	tmp = chunk->fd;
-	tmp->bk = chunk->bk;
-	if (tmp->fd == chunk)
-		tmp->fd = tmp;
+	bk = chunk->bk;
+	fd = chunk->fd;
+	if (bk != chunk || fd != chunk)
+		return ;
+	bk->fd = fd;
+	fd->bk = bk;
 }
 
 void	alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t *connect)
@@ -79,5 +89,6 @@ mchunk_t	*alloc_newchunk(marena_t *arena, size_t size)
 	alloc_partial_chunk(chunk, size, (bin_t *)0);
 	arena->bottom += size;
 	printf("NEWCHUNK %lu %p\n", size, chunk);
+	link_chunk(chunk, &arena->pool);
 	return (chunk);
 }

@@ -10,7 +10,6 @@ static void *malloc2(size_t size)
 
 	victim = (void *)0;
 	arena = mp.arena;
-	pthread_mutex_lock(&mp.global);
 	while (arena && victim == (void *)0)
 	{
 		pthread_mutex_lock(&arena->mutex);
@@ -18,6 +17,7 @@ static void *malloc2(size_t size)
 		pthread_mutex_unlock(&arena->mutex);
 		arena = arena->next;
 	}
+	pthread_mutex_lock(&mp.global);	
 	if (victim == (void *)0 && (arena = arena_new()) != (marena_t *)0)
 	{
 		victim = int_malloc(arena, size);
@@ -52,11 +52,17 @@ void	free(void *mem)
 {
 	mchunk_t	*chunk;
 
-	if (mem == (void *)0)
+	if (mem == (void *)0 || sanity_check(mem))
 		return ;
 	chunk = MEM2CHUNK(mem);
 	if (chunk->size & SIZE_IS_MAPPED)
+	{
+		pthread_mutex_lock(&mp.global);
+		unlink_chunk(chunk, &mp.pool);
 		munmap((void *)chunk, chunk->size);
+		pthread_mutex_unlock(&mp.global);
+		return ;
+	}
 	int_free(mem);
 }
 
@@ -67,11 +73,13 @@ void	*realloc(void *mem, size_t size)
 
 	if (mem == (void *)0)
 		return (malloc(size));
+	if (sanity_check(mem))
+		return ((void *)0);
 	victim = int_realloc(mem, size);
 	if (victim == (void *)0 && (victim = malloc(size)))
 	{
 		chunk = MEM2CHUNK(mem);
-		memcpy(mem, victim, MIN(chunk->size, REQ2SIZE(size)) - SIZE_SZ);
+		memcpy(mem, victim, MIN(chunk->size, REQ2SIZE(size, size)) - SIZE_SZ);
 		free(mem);
 	}
 	return (victim);

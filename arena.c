@@ -37,7 +37,6 @@ marena_t	*arena_new()
 		return ((marena_t *)0);
 	}
 	memset(new, 0, sizeof(marena_t));
-	new->size = HEAP_SIZE;
 	memcpy(&new->mutex, &mutex, sizeof(mutex));
 	pagemask = mp.pagesize - 1;
 	top = (void *)((char *)new + ((sizeof(marena_t) + pagemask) & ~pagemask));
