@@ -1,9 +1,16 @@
 #include <pthread.h>
 #include <unistd.h>
+#include <errno.h>
 #include "malloc_private.h"
 
 static int	init_global_lock()
 {
+	if (pthread_mutex_trylock(&mp.global) == EBUSY)
+	{
+		pthread_mutex_lock(&mp.global);
+		pthread_mutex_unlock(&mp.global);
+		return (1);
+	}
 	if (pthread_mutex_init(&mp.global, (pthread_mutexattr_t *)0) != 0)
 	{
 		mp.malloc_init = 2;
@@ -33,7 +40,7 @@ void	int_malloc_init()
 	mp.malloc_init = 1;
 	if (init_global_lock())
 		return ;
-	mp.pagesize = sysconf(_SC_PAGESIZE);
+	mp.pagesize = getpagesize();
 	pthread_mutex_lock(&mp.global);
 	if (init_global_key())
 		return ;
