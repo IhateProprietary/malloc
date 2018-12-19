@@ -47,8 +47,8 @@ void	int_malloc_init()
 	}
 	pthread_setspecific(mp.tsd, arena);
 	mp.arena = arena;
-	mp.mmap = 1;
 	mp.narena = 1;
 	mp.malloc_init = 3;
+	arena->prev = arena;
 	pthread_mutex_unlock(&mp.global);
 }

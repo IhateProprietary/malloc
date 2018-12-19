@@ -43,7 +43,7 @@ void	unlink_chunk(mchunk_t *chunk, bin_t *bin)
 	}
 	bk = chunk->bk;
 	fd = chunk->fd;
-	if (bk != chunk || fd != chunk)
+	if (bk->fd != chunk || fd->bk != chunk)
 		return ;
 	bk->fd = fd;
 	fd->bk = bk;

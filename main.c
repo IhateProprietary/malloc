@@ -1,5 +1,5 @@
 #include "malloc.h"
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <stdio.h>
 
 int		main()
@@ -13,7 +13,7 @@ int		main()
 		alloced += 96;
 		void *c = malloc(160);
 		alloced += 176;
-		
+
 		free(ptr);
 		alloced -= 32;
 		free(c);
@@ -28,4 +28,5 @@ int		main()
 		printf("%d----------------\n", i);
 	}
 	printf("0x%lx\n", alloced);
+	show_alloc_mem();
 }

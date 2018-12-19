@@ -38,6 +38,8 @@ void	*int_realloc(void *mem, size_t size)
 	size_t		alignsize;
 
 	chunk = MEM2CHUNK(mem);
+	if (CHUNKMAPPED(chunk))
+		return ((void *)0);
 	arena = MEM2ARENA(mem);
 	alignsize = REQ2SIZE(size, alignsize);
 	printf("TRY REALLOC MEM %p SIZE 0x%lx for size 0x%lx %lu\n", chunk, chunk->size, alignsize, alignsize);

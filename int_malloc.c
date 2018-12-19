@@ -44,7 +44,6 @@ static mchunk_t	*alloc_smallbin(marena_t *arena, size_t size)
 	alloc_partial_chunk(chunk, size, &arena->unsortedbin);
 	printf("SMALLBIN %lu idx %d\n", size, index);
 	link_chunk(chunk, &arena->pool);
-	printf("arena->pool %p\n", arena->pool);
 	return (chunk);
 }
 

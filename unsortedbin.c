@@ -21,15 +21,16 @@ mchunk_t	*alloc_unsortedbin(marena_t *arena, size_t size)
 		while (chunk != stop)
 		{
 			printf("try %p size %lu for %lu size\n", chunk, chunk->size, size);
-			if (CHUNKSIZE(chunk) == size)
+			if (CHUNKSIZE(chunk) >= size)
 				break ;
 			next = chunk->fd;
 			insert_chunk_bin(arena, chunk);
 			chunk = next;
 		}
-		if (CHUNKSIZE(chunk) == size)
+		if (CHUNKSIZE(chunk) >= size)
 		{
 			unlink_chunk(chunk, &arena->unsortedbin);
+			alloc_partial_chunk(chunk, size, &arena->unsortedbin);
 			SETNEXTOPT(chunk, SIZE_PREV_INUSE);
 			printf("UNSORTEDBIN chunk %p size %lu, unsortedbin %p\n",
 				   chunk, chunk->size, arena->unsortedbin);

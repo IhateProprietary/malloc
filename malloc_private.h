@@ -23,6 +23,8 @@
 # define CHUNKSIZE(x)		((x)->size & ~SIZE_FLAGS)
 # define UCHUNKSIZE(x)		((x) & ~SIZE_FLAGS)
 # define UCHUNKFLAGS(x)		((x) & SIZE_FLAGS)
+# define PREVINUSE(c)		((c)->size & SIZE_PREV_INUSE)
+# define CHUNKMAPPED(c)		((c)->size & SIZE_IS_MAPPED)
 
 # define SETOPT(x, opt)		((x)->size |= (opt))
 # define UNSETOPT(x, opt)	((x)->size &= ~(opt))
@@ -50,10 +52,6 @@
 # define REQCHECK(x)		((x) < M_MINSIZE)
 # define REQALIGN(x)		((x) + (SIZE_SZ * 3) + M_ALIGN_MASK & ~(M_ALIGN_MASK))
 # define REQ2SIZE(req, nb)	(REQCHECK((nb = REQALIGN(req))) ? M_MINSIZE : nb)
-# define PREVINUSE(c)		((c)->size & SIZE_PREV_INUSE)
-
-# define ARENA_SHOULD_TRIM			0x1
-# define ARENA_SHOULD_CONSOLIDATE	0x2
 
 # define NFASTBINS	10
 # define NSMALLBINS	64
@@ -98,10 +96,6 @@ extern mstate_t	mp;
 struct	malloc_state_s
 {
 	marena_t	*arena;
-	size_t		malloc;
-	size_t		free;
-	size_t		mmap;
-	size_t		munmap;
 	size_t		narena;
 	size_t		used;
 	size_t		pagesize;
@@ -113,16 +107,17 @@ struct	malloc_state_s
 
 struct	malloc_arena_s
 {
-	struct malloc_arena_s	*next;
-	mutex_t	mutex;
-	size_t	pagesize;
-	size_t	fastbinsize;
-	bin_t	fastbins[NFASTBINS];
-	bin_t	bins[NBINS - 1];
-	bin_t	unsortedbin;
-	bin_t	pool;
-	void	*topmost;
-	void	*bottom;
+	marena_t	*next;
+	marena_t	*prev;
+	mutex_t		mutex;
+	size_t		pagesize;
+	size_t		fastbinsize;
+	bin_t		fastbins[NFASTBINS];
+	bin_t		bins[NBINS - 1];
+	bin_t		unsortedbin;
+	bin_t		pool;
+	void		*topmost;
+	void		*bottom;
 };
 
 struct	malloc_chunk_s
@@ -141,6 +136,7 @@ marena_t	*arena_get();
 void		int_malloc_init();
 void		*int_malloc(marena_t *arena, size_t size);
 void		int_free(void *ptr);
+void		*int_realloc(void *ptr, size_t size);
 
 void		alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t *connect);
 void		link_chunk(mchunk_t *chunk, bin_t *bin);

@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <string.h>
 #include "malloc_private.h"
 
 mstate_t	mp;
@@ -22,11 +23,13 @@ static void *malloc2(size_t size)
 	{
 		victim = int_malloc(arena, size);
 		arena->next = mp.arena;
+		arena->prev = mp.arena->prev;
+		mp.arena->prev = arena;
 		mp.arena = arena;
 	}
+	pthread_mutex_unlock(&mp.global);
 	if (arena)
 		pthread_setspecific(mp.tsd, (void *)arena);
-	pthread_mutex_unlock(&mp.global);
 	return (victim);
 }
 
@@ -42,6 +45,11 @@ void	*malloc(size_t size)
 		return ((void *)0);
 	pthread_mutex_lock(&arena->mutex);
 	victim = int_malloc(arena, size);
+	if (victim == (void *)0 && arena->fastbinsize >= FASTBIN_MAXSIZE)
+	{
+		forsake_fastbins(arena);
+		victim = int_malloc(arena, size);
+	}
 	pthread_mutex_unlock(&arena->mutex);
 	if (victim == (void *)0)
 		victim = malloc2(size);
@@ -79,7 +87,7 @@ void	*realloc(void *mem, size_t size)
 	if (victim == (void *)0 && (victim = malloc(size)))
 	{
 		chunk = MEM2CHUNK(mem);
-		memcpy(mem, victim, MIN(chunk->size, REQ2SIZE(size, size)) - SIZE_SZ);
+		memcpy(mem, victim, MIN(chunk->size, REQ2SIZE(size, size)) - (SIZE_SZ * 3));
 		free(mem);
 	}
 	return (victim);

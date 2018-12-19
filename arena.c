@@ -43,6 +43,7 @@ marena_t	*arena_new()
 	offset = (unsigned long)top - (unsigned long)new;
 	new->topmost = top;
 	new->bottom = top;
+	mp.narena += 1;
 	((mchunk_t *)top)->size = (HEAP_SIZE - offset) | SIZE_PREV_INUSE;
 	return (new);
 }
