@@ -1,6 +1,6 @@
 #include <pthread.h>
 #include <unistd.h>
-#include <string.h>
+#include "libft.h"
 #include "malloc_private.h"
 
 mstate_t	mp;
@@ -88,7 +88,7 @@ void	*realloc(void *mem, size_t size)
 	if (victim == (void *)0 && (victim = malloc(size)))
 	{
 		chunk = MEM2CHUNK(mem);
-		memcpy(mem, victim, MIN(chunk->size, REQ2SIZE(size, size)) - (SIZE_SZ * 3));
+		ft_memcpy(mem, victim, MIN(chunk->size, REQ2SIZE(size, size)) - (SIZE_SZ * 3));
 		free(mem);
 	}
 	return (victim);
@@ -107,7 +107,7 @@ void	*calloc(size_t count, size_t size)
 	total = count * size;
 	if ((victim = malloc(total)) == (void *)0)
 		return ((void *)0);
-	return (memset(victim, 0, total));
+	return (ft_memset(victim, 0, total));
 }
 
 void	*reallocf(void *mem, size_t size)

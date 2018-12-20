@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include "ft_printf.h"
 #include "malloc_private.h"
 
 void	dump_arena_pool(marena_t *arena)

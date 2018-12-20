@@ -1,7 +1,7 @@
 #include <unistd.h>
-#include <string.h>
 #include <pthread.h>
 #include <sys/mman.h>
+#include "libft.h"
 #include "malloc_private.h"
 
 static void	*mmap_aligned_heap()
@@ -36,8 +36,8 @@ marena_t	*arena_new()
 		pthread_mutex_destroy(&mutex);
 		return ((marena_t *)0);
 	}
-	memset(new, 0, sizeof(marena_t));
-	memcpy(&new->mutex, &mutex, sizeof(mutex));
+	ft_memset(new, 0, sizeof(marena_t));
+	ft_memcpy(&new->mutex, &mutex, sizeof(mutex));
 	pagemask = mp.pagesize - 1;
 	top = (void *)((char *)new + ((sizeof(marena_t) + pagemask) & ~pagemask));
 	offset = (unsigned long)top - (unsigned long)new;

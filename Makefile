@@ -6,7 +6,7 @@
 #    By: jye <marvin@42.fr>                         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/12/19 04:43:40 by jye               #+#    #+#              #
-#    Updated: 2018/12/20 05:18:34 by jye              ###   ########.fr        #
+#    Updated: 2018/12/21 00:32:29 by jye              ###   ########.fr        #
 #                                                                              #
 #******************************************************************************#
 
@@ -33,20 +33,30 @@ LIB = libft_malloc
 EXT = .so
 NAME = $(LIB)$(EXT)
 
-all: $(NAME)
+all: libft_printf.a libft.a $(NAME)
 
 $(NAME): $(OWPATH)
-	$(CC) -shared $^ -o $(LIB)_$(HOSTTYPE)$(EXT)
+	$(CC) -shared $^ -Lft_printf -lftprintf -Llibft -lft -o $(LIB)_$(HOSTTYPE)$(EXT)
 	ln -sf $(LIB)_$(HOSTTYPE)$(EXT) $@
 
 $(OFOLDER)/%.o : $(CFOLDER)/%.c
 	@mkdir -p $(OFOLDER)
-	$(CC) $(CFLAGS) $(CDEBUG) -c $< -o $@
+	$(CC) $(CFLAGS) $(CDEBUG) -Ilibft -Ift_printf/includes -c $^ -o $@
+
+libft_printf.a:
+	make -C ft_printf
+
+libft.a:
+	make -C libft
 
 clean:
+	make -C ft_printf clean
+	make -C libft clean
 	rm -rf $(OFOLDER)
 
 fclean: clean
+	make -C ft_printf fclean
+	make -C libft fclean
 	rm -rf $(NAME) $(LIB)_$(HOSTTYPE)$(EXT)
 
 re: fclean all
