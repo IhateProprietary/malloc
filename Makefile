@@ -6,7 +6,7 @@
 #    By: jye <marvin@42.fr>                         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/12/19 04:43:40 by jye               #+#    #+#              #
-#    Updated: 2018/12/19 05:09:14 by jye              ###   ########.fr        #
+#    Updated: 2018/12/20 05:18:34 by jye              ###   ########.fr        #
 #                                                                              #
 #******************************************************************************#
 
@@ -36,12 +36,12 @@ NAME = $(LIB)$(EXT)
 all: $(NAME)
 
 $(NAME): $(OWPATH)
-	$(CC) -shared $< -o $(LIB)_$(HOSTTYPE)$(EXT)
-	ln -s $(LIB)_$(HOSTTYPE)$(EXT) $@
+	$(CC) -shared $^ -o $(LIB)_$(HOSTTYPE)$(EXT)
+	ln -sf $(LIB)_$(HOSTTYPE)$(EXT) $@
 
 $(OFOLDER)/%.o : $(CFOLDER)/%.c
 	@mkdir -p $(OFOLDER)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(CDEBUG) -c $< -o $@
 
 clean:
 	rm -rf $(OFOLDER)

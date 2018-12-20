@@ -12,7 +12,10 @@ int		sanity_check_pool(bin_t pool, mutex_t *mutex, void *mem)
 	pthread_mutex_lock(mutex);
 	mchunk = MEM2CHUNK(mem);
 	if ((chunk = pool) == (mchunk_t *)0)
+	{
+		pthread_mutex_unlock(mutex);
 		return (res);
+	}
 	stop = chunk->bk;
 	while (res)
 	{

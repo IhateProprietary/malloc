@@ -36,6 +36,5 @@ mchunk_t *alloc_largebin(marena_t *arena, size_t size)
 	}
 	alloc_largebin2(arena, chunk, index);
 	alloc_partial_chunk(chunk, size, &arena->unsortedbin);
-	printf("LARGEBIN %lu\n", size);
 	return (chunk);
 }

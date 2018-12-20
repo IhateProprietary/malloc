@@ -13,9 +13,8 @@ static mchunk_t	*alloc_fastbin(marena_t *arena, size_t size)
 	if (chunk == (mchunk_t *)0)
 		return ((mchunk_t *)0);
 	arena->fastbins[index] = chunk->fd;
-	printf("FASTBIN %lu\n", size);
 	link_chunk(chunk, &arena->pool);
-	printf("arena->pool %p\n", arena->pool);
+	arena->fastbinsize -= size;
 	return (chunk);
 }
 
@@ -42,7 +41,6 @@ static mchunk_t	*alloc_smallbin(marena_t *arena, size_t size)
 	if (chunk == arena->bins[index])
 		arena->bins[index] = (mchunk_t *)0;
 	alloc_partial_chunk(chunk, size, &arena->unsortedbin);
-	printf("SMALLBIN %lu idx %d\n", size, index);
 	link_chunk(chunk, &arena->pool);
 	return (chunk);
 }
@@ -54,8 +52,6 @@ static mchunk_t	*alloc_mmap(size_t size)
 	size_t		pagemask;
 	size_t		mmapsize;
 
-
-	printf("MMAP %lu\n", size);
 	pagemask = mp.pagesize - 1;
 	mmapsize = (size + pagemask) & ~pagemask;
 	if ((mem = NEW_HEAP(mmapsize)) == (void *)MAP_FAILED)
@@ -74,7 +70,6 @@ void	*int_malloc(marena_t *arena, size_t size)
 	size_t		alignsize;
 
 	alignsize = REQ2SIZE(size, alignsize);
-	printf("arena %p alloc 0x%lx\n", arena, alignsize);
 	if (alignsize >= MMAP_THRESHOLD)
 	{
 		if ((chunk = alloc_mmap(alignsize)))

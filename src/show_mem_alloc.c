@@ -20,10 +20,10 @@ void	dump_arena_pool(marena_t *arena)
 		idx[0] += size >= (MMAP_THRESHOLD >> 5);
 		if (idx[0] != idx[1])
 		{
-			printf("%s: %p\n", human_size[idx[0]], chunk);
+			ft_printf("%s: %p\n", human_size[idx[0]], chunk);
 			idx[1] = idx[0];
 		}
-		printf("%p - %p : %lu bytes\n", CHUNK2MEM(chunk), NEXTCHUNK(chunk),
+		ft_printf("%p - %p : %lu bytes\n", CHUNK2MEM(chunk), NEXTCHUNK(chunk),
 			   size);
 		chunk = NEXTCHUNK(chunk);
 	}
@@ -42,7 +42,7 @@ void	dump_large_pool()
 	{
 		size = CHUNKSIZE(chunk) - SIZE_SZ * 4;
 		mp.used += size;
-		printf("LARGE: %p\n%p - %p : %lu bytes\n", chunk,
+		ft_printf("LARGE: %p\n%p - %p : %lu bytes\n", chunk,
 			   CHUNK2MEM(chunk), NEXTCHUNK(chunk), size);
 		if (chunk == stop)
 			break ;
@@ -74,6 +74,6 @@ void	show_alloc_mem(void)
 			arena = arena->prev;
 		}
 	}
-	printf("Total : %lu\n", mp.used);
+	ft_printf("Total : %lu\n", mp.used);
 	pthread_mutex_unlock(&mp.global);
 }

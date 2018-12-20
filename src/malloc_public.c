@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <unistd.h>
 #include <string.h>
 #include "malloc_private.h"
 
