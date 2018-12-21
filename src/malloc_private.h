@@ -146,5 +146,8 @@ mchunk_t	*alloc_newchunk(marena_t *arena, size_t size);
 
 mchunk_t	*alloc_unsortedbin(marena_t *arena, size_t size);
 mchunk_t	*consolidate_chunk(marena_t *arena, mchunk_t *chunk);
+void		forsake_fastbins(marena_t *arena);
+int			sanity_check(void *mem);
+
 
 #endif

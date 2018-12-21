@@ -14,7 +14,10 @@ void	link_chunk(mchunk_t *chunk, bin_t *bin)
 	if (head)
 	{
 		bk = head->bk;
-		fd = head;
+		fd = head->fd;
+		head->bk = chunk;
+		if (head->fd == head)
+			head->fd = chunk;
 	}
 	else
 	{
@@ -28,8 +31,8 @@ void	link_chunk(mchunk_t *chunk, bin_t *bin)
 void	unlink_chunk(mchunk_t *chunk, bin_t *bin)
 {
 	mchunk_t *head;
-	mchunk_t	*bk;
-	mchunk_t	*fd;
+	mchunk_t *bk;
+	mchunk_t *fd;
 
 	head = *bin;
 	if (chunk == head)
@@ -43,8 +46,6 @@ void	unlink_chunk(mchunk_t *chunk, bin_t *bin)
 	}
 	bk = chunk->bk;
 	fd = chunk->fd;
-	if (bk->fd != chunk || fd->bk != chunk)
-		return ;
 	bk->fd = fd;
 	fd->bk = bk;
 }
