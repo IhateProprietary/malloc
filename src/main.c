@@ -1,32 +1,30 @@
 #include "malloc.h"
-//#include <stdlib.h>
+#include "malloc_private.h"
 #include <stdio.h>
+#define N 900
+
+extern mstate_t mp;
 
 int		main()
 {
-	size_t alloced = 0;
-	for (int i = 0;i < 1024;i++)
+	void *ptr[N];
+	for (int i = 0;i < N;i++)
 	{
-		void *ptr = malloc(24);
-		alloced += 32;
-		void *abc = malloc(80);
-		alloced += 96;
-		void *c = malloc(160);
-		alloced += 176;
-
-		free(ptr);
-		alloced -= 32;
-		free(c);
-		alloced -= 176;
-		realloc(abc, 240);
-		alloced += 176;
-		printf("%p\n", ptr);
-		printf("%p\n", abc);
-		void *b = malloc(800);
-		alloced += 816;
-		printf("%p\n", b);
-		printf("%d----------------\n", i);
+		ptr[i] = malloc(1024);
+		printf("%p\n", ptr[i]);
 	}
-	printf("0x%lx\n", alloced);
-	show_alloc_mem();
+	for (int i = 0; i < N;i++)
+		free(ptr[i]);
+	for (int i= 0; i < N; i++)
+	{
+		ptr[i] = malloc(1024);
+		printf("%p\n", ptr[i]);
+	}
+	marena_t *a = mp.arena;
+	mchunk_t *chunk = a->pool, *stop = a->pool->bk;
+	dprintf(2, "test___ arena %p\n", mp.arena->pool);
+	dprintf(2, "test___ arena %p %p,%p\n", chunk, stop, chunk->bk);
+	for (; chunk != stop; chunk = chunk->fd)
+		dprintf(2, "%p\n", CHUNK2MEM(chunk));
+//	show_alloc_mem();
 }

@@ -6,9 +6,9 @@ static mchunk_t	*alloc_fastbin(marena_t *arena, size_t size)
 	mchunk_t	*chunk;
 	int			index;
 
-	index = FASTBIN_INDEX(size);
-	if (index >= NFASTBINS)
+	if (size > FASTBIN_MAXSIZE)
 		return ((mchunk_t *)0);
+	index = FASTBIN_INDEX(size);
 	chunk = arena->fastbins[index];
 	if (chunk == (mchunk_t *)0)
 		return ((mchunk_t *)0);
@@ -21,7 +21,6 @@ static mchunk_t	*alloc_fastbin(marena_t *arena, size_t size)
 static mchunk_t	*alloc_smallbin(marena_t *arena, size_t size)
 {
 	mchunk_t	*chunk;
-	mchunk_t	*next;
 	int			index;
 
 	if (size >= LARGEBIN_MINSIZE)
@@ -32,14 +31,7 @@ static mchunk_t	*alloc_smallbin(marena_t *arena, size_t size)
 		index++;
 	if (chunk == (mchunk_t *)0)
 		return ((mchunk_t *)0);
-	next = chunk->fd;
-	next->bk = chunk->bk;
-	if (next->fd == chunk)
-		next->fd = next;
-	if (chunk == arena->bins[index])
-		arena->bins[index] = chunk->fd;
-	if (chunk == arena->bins[index])
-		arena->bins[index] = (mchunk_t *)0;
+	unlink_chunk(chunk, &arena->bins[index]);
 	alloc_partial_chunk(chunk, size, &arena->unsortedbin);
 	link_chunk(chunk, &arena->pool);
 	return (chunk);
@@ -57,7 +49,7 @@ static mchunk_t	*alloc_mmap(size_t size)
 	if ((mem = NEW_HEAP(mmapsize)) == (void *)MAP_FAILED)
 		return ((mchunk_t *)0);
 	chunk = mem;
-	chunk->size = mmapsize | SIZE_IS_MAPPED;
+	chunk->size = mmapsize | IS_MAPPED;
 	pthread_mutex_lock(&mp.global);
 	link_chunk(chunk, &mp.pool);
 	pthread_mutex_unlock(&mp.global);

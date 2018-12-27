@@ -16,15 +16,13 @@
 # if !defined(MAP_NORESERVE) && defined(MAP_NOCACHE)
 #  define MAP_NORESERVE MAP_NOCACHE
 # endif
-# define SIZE_PREV_INUSE	0x1
-# define SIZE_IS_MAPPED		0x2
-# define SIZE_FLAGS			(SIZE_PREV_INUSE | SIZE_IS_MAPPED)
-# define CHUNKFLAGS(x)		((x)->size & SIZE_FLAGS)
-# define CHUNKSIZE(x)		((x)->size & ~SIZE_FLAGS)
-# define UCHUNKSIZE(x)		((x) & ~SIZE_FLAGS)
-# define UCHUNKFLAGS(x)		((x) & SIZE_FLAGS)
-# define PREVINUSE(c)		((c)->size & SIZE_PREV_INUSE)
-# define CHUNKMAPPED(c)		((c)->size & SIZE_IS_MAPPED)
+# define PREV_INUSE		0x1
+# define IS_MAPPED		0x2
+# define SIZE_FLAGS		(PREV_INUSE | IS_MAPPED)
+# define CHUNKFLAGS(x)	((x)->size & SIZE_FLAGS)
+# define CHUNKSIZE(x)	((x)->size & ~SIZE_FLAGS)
+# define PREVINUSE(c)	((c)->size & PREV_INUSE)
+# define CHUNKMAPPED(c)	((c)->size & IS_MAPPED)
 
 # define SETOPT(x, opt)		((x)->size |= (opt))
 # define UNSETOPT(x, opt)	((x)->size &= ~(opt))
@@ -50,7 +48,7 @@
 # define MEM2CHUNK(ptr)		(((void *)(ptr)) - SIZE_SZ * 4)
 # define MEM2ARENA(ptr)		((void *)((unsigned long)(ptr) & ~(HEAP_SIZE - 1)))
 # define REQCHECK(x)		((x) < M_MINSIZE)
-# define REQALIGN(x)		((x) + (SIZE_SZ * 3) + M_ALIGN_MASK & ~(M_ALIGN_MASK))
+# define REQALIGN(x)		(((x) + (SIZE_SZ * 3) + M_ALIGN_MASK) & ~(M_ALIGN_MASK))
 # define REQ2SIZE(req, nb)	(REQCHECK((nb = REQALIGN(req))) ? M_MINSIZE : nb)
 
 # define NFASTBINS	10
@@ -62,12 +60,12 @@
 # define LARGEBIN_MINSIZE	(NSMALLBINS << 3)
 
 # define FASTBIN_INDEX(x) ((x) >> 3)
-# define SMALLBIN_INDEX(x) (FASTBIN_INDEX(x) - 1)
-# define LARGEBIN1_INDEX(x) (((x) >> 6) + NSMALLBINS)
-# define LARGEBIN2_INDEX(x) (((x) >> 9) + NSMALLBINS + 31)
-# define LARGEBIN3_INDEX(x) (((x) >> 12) + NSMALLBINS + 47)
-# define LARGEBIN4_INDEX(x) (((x) >> 15) + NSMALLBINS + 55)
-# define LARGEBIN5_INDEX(x) (((x) >> 18) + NSMALLBINS + 59)
+# define SMALLBIN_INDEX(x) (FASTBIN_INDEX(x))
+# define LARGEBIN1_INDEX(x) (((x) >> 6) + 56)
+# define LARGEBIN2_INDEX(x) (((x) >> 9) + 91)
+# define LARGEBIN3_INDEX(x) (((x) >> 12) + 110)
+# define LARGEBIN4_INDEX(x) (((x) >> 15) + 119)
+# define LARGEBIN5_INDEX(x) (((x) >> 18) + 124)
 
 # define TER(cond, if_, else_) ((cond) ? (if_) : (else_))
 
@@ -75,8 +73,8 @@
 
 # define BIN_INDEX1(x) TER(x < (64 << 3), SMALLBIN_INDEX(x), BIN_INDEX2(x))
 # define BIN_INDEX2(x) TER(((x) >> 6) <= 32, LARGEBIN1_INDEX(x), BIN_INDEX3(x))
-# define BIN_INDEX3(x) TER(((x) >> 9) <= 16, LARGEBIN2_INDEX(x), BIN_INDEX4(x))
-# define BIN_INDEX4(x) TER(((x) >> 12) <= 8, LARGEBIN3_INDEX(x), BIN_INDEX5(x))
+# define BIN_INDEX3(x) TER(((x) >> 9) <= 20, LARGEBIN2_INDEX(x), BIN_INDEX4(x))
+# define BIN_INDEX4(x) TER(((x) >> 12) <= 10, LARGEBIN3_INDEX(x), BIN_INDEX5(x))
 # define BIN_INDEX5(x) TER(((x) >> 15) <= 4, LARGEBIN4_INDEX(x), BIN_INDEX6(x))
 # define BIN_INDEX6(x) TER(((x) >> 18) <= 2, LARGEBIN5_INDEX(x), 126)
 # define LARGEBIN_INDEX(x) BIN_INDEX2(x)
@@ -110,10 +108,9 @@ struct	malloc_arena_s
 	marena_t	*next;
 	marena_t	*prev;
 	mutex_t		mutex;
-	size_t		pagesize;
 	size_t		fastbinsize;
 	bin_t		fastbins[NFASTBINS];
-	bin_t		bins[NBINS - 1];
+	bin_t		bins[NBINS * 2];
 	bin_t		unsortedbin;
 	bin_t		pool;
 	void		*topmost;

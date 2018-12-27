@@ -39,6 +39,7 @@ void	*malloc(size_t size)
 	marena_t	*arena;
 	void		*victim;
 
+	ft_dprintf(2, "MY MALLOC tm\n");
 	if (mp.malloc_init < 1)
 		int_malloc_init();
 	arena = arena_get();
@@ -46,11 +47,12 @@ void	*malloc(size_t size)
 		return ((void *)0);
 	pthread_mutex_lock(&arena->mutex);
 	victim = int_malloc(arena, size);
-	if (victim == (void *)0 && arena->fastbinsize >= FASTBIN_MAXSIZE)
-	{
-		forsake_fastbins(arena);
-		victim = int_malloc(arena, size);
-	}
+	/* if (victim == (void *)0 && arena->fastbinsize >= FASTBIN_MAXSIZE) */
+	/* { */
+	/* 	forsake_fastbins(arena); */
+	/* 	arena->fastbinsize = 0; */
+	/* 	victim = int_malloc(arena, size); */
+	/* } */
 	pthread_mutex_unlock(&arena->mutex);
 	if (victim == (void *)0)
 		victim = malloc2(size);
@@ -64,11 +66,13 @@ void	free(void *mem)
 	if (mem == (void *)0 || sanity_check(mem))
 		return ;
 	chunk = MEM2CHUNK(mem);
-	if (chunk->size & SIZE_IS_MAPPED)
+	if (CHUNKMAPPED(chunk))
 	{
+		//pthread_mutex___ GLOBAL LOCK BEGIN
 		pthread_mutex_lock(&mp.global);
 		unlink_chunk(chunk, &mp.pool);
-		munmap((void *)chunk, chunk->size);
+		munmap((void *)chunk, CHUNKSIZE(chunk));
+		//pthread_mutex___ GLOBAL LOCK END
 		pthread_mutex_unlock(&mp.global);
 		return ;
 	}
@@ -79,6 +83,7 @@ void	*realloc(void *mem, size_t size)
 {
 	void		*victim;
 	mchunk_t	*chunk;
+	size_t		chunksize;
 
 	if (mem == (void *)0)
 		return (malloc(size));
@@ -88,7 +93,9 @@ void	*realloc(void *mem, size_t size)
 	if (victim == (void *)0 && (victim = malloc(size)))
 	{
 		chunk = MEM2CHUNK(mem);
-		ft_memcpy(mem, victim, MIN(chunk->size, REQ2SIZE(size, size)) - (SIZE_SZ * 3));
+		chunksize = CHUNKSIZE(chunk);
+		chunksize -= SIZE_SZ * (3 + CHUNKMAPPED(chunk));
+		ft_memcpy(victim, mem, MIN(chunksize, size));
 		free(mem);
 	}
 	return (victim);

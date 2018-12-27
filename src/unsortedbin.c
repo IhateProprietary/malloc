@@ -4,7 +4,8 @@ static void	insert_chunk_bin(marena_t *arena, mchunk_t *chunk)
 {
 	int			idx;
 
-	idx = BIN_INDEX(chunk->size);
+	unlink_chunk(chunk, &arena->unsortedbin);
+	idx = BIN_INDEX(CHUNKSIZE(chunk));
 	link_chunk(chunk, &arena->bins[idx]);
 }
 
@@ -14,26 +15,25 @@ mchunk_t	*alloc_unsortedbin(marena_t *arena, size_t size)
 	mchunk_t	*next;
 	mchunk_t	*stop;
 
-	if ((chunk = arena->unsortedbin))
+	if ((chunk = arena->unsortedbin) == (mchunk_t *)0)
+		return ((mchunk_t *)0);
+	stop = chunk->bk;
+	while (chunk != stop)
 	{
-		stop = chunk->bk;
-		while (chunk != stop)
-		{
-			if (CHUNKSIZE(chunk) >= size)
-				break ;
-			next = chunk->fd;
-			insert_chunk_bin(arena, chunk);
-			chunk = next;
-		}
 		if (CHUNKSIZE(chunk) >= size)
-		{
-			unlink_chunk(chunk, &arena->unsortedbin);
-			alloc_partial_chunk(chunk, size, &arena->unsortedbin);
-			SETNEXTOPT(chunk, SIZE_PREV_INUSE);
-			return (chunk);
-		}
+			break ;
+		next = chunk->fd;
 		insert_chunk_bin(arena, chunk);
-		arena->unsortedbin = (bin_t)0;
+		chunk = next;
 	}
+	if (CHUNKSIZE(chunk) >= size)
+	{
+		unlink_chunk(chunk, &arena->unsortedbin);
+		alloc_partial_chunk(chunk, size, &arena->unsortedbin);
+		link_chunk(chunk, &arena->pool);
+		SETNEXTOPT(chunk, PREV_INUSE);
+		return (chunk);
+	}
+	insert_chunk_bin(arena, chunk);
 	return ((mchunk_t *)0);
 }

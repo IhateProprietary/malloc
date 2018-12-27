@@ -10,7 +10,7 @@ void	grow_chunk(marena_t *arena, mchunk_t *chunk, size_t size)
 
 	next = NEXTCHUNK(chunk);
 	next = NEXTCHUNK(next);
-	heapmax = (void *)((unsigned long)arena + HEAP_SIZE);
+	heapmax = (void *)((unsigned long)arena + HEAP_SIZE - M_MINSIZE);
 	cursize = CHUNKSIZE(chunk);
 	while ((void *)next < heapmax && !PREVINUSE(next))
 	{
@@ -18,14 +18,15 @@ void	grow_chunk(marena_t *arena, mchunk_t *chunk, size_t size)
 		if (prev == arena->unsortedbin)
 			unlink_chunk(prev, &arena->unsortedbin);
 		else
-			unlink_chunk(prev, &arena->bins[BIN_INDEX(prev->size)]);
+			unlink_chunk(prev, &arena->bins[BIN_INDEX(CHUNKSIZE(prev))]);
 		cursize += CHUNKSIZE(prev);
-		SETOPT(next, SIZE_PREV_INUSE);
 		if (cursize >= size)
 			break ;
 		next = NEXTCHUNK(next);
 	}
 	chunk->size = cursize + CHUNKFLAGS(chunk);
+	next = NEXTCHUNK(chunk);
+	SETOPT(next, PREV_INUSE);
 }
 
 void	*int_realloc(void *mem, size_t size)
@@ -43,9 +44,11 @@ void	*int_realloc(void *mem, size_t size)
 	pthread_mutex_lock(&arena->mutex);
 	chunksize = CHUNKSIZE(chunk);
 	if (chunksize < alignsize)
+	{
 		grow_chunk(arena, chunk, alignsize);
+	}
 	chunksize = CHUNKSIZE(chunk);
-	if (chunksize < size)
+	if (chunksize < alignsize)
 	{
 		pthread_mutex_unlock(&arena->mutex);
 		return ((void *)0);

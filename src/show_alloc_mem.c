@@ -10,7 +10,7 @@ void	dump_arena_pool(marena_t *arena)
 	void		*maxheap;
 
 	pthread_mutex_lock(&arena->mutex);
-	maxheap = (void *)((unsigned long)arena + HEAP_SIZE);
+	maxheap = (void *)((unsigned long)arena + HEAP_SIZE - M_MINSIZE);
 	chunk = (mchunk_t *)arena->topmost;
 	idx[1] = -1;
 	while ((void *)chunk < maxheap)

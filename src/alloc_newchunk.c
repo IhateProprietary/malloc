@@ -8,16 +8,11 @@ void	link_chunk(mchunk_t *chunk, bin_t *bin)
 	mchunk_t	*fd;
 
 	head = *bin;
-	if (head == chunk)
-		return ;
 	*bin = chunk;
 	if (head)
 	{
 		bk = head->bk;
-		fd = head->fd;
-		head->bk = chunk;
-		if (head->fd == head)
-			head->fd = chunk;
+		fd = head;
 	}
 	else
 	{
@@ -26,6 +21,8 @@ void	link_chunk(mchunk_t *chunk, bin_t *bin)
 	}
 	chunk->fd = fd;
 	chunk->bk = bk;
+	fd->bk = chunk;
+	bk->fd = chunk;
 }
 
 void	unlink_chunk(mchunk_t *chunk, bin_t *bin)
@@ -38,11 +35,12 @@ void	unlink_chunk(mchunk_t *chunk, bin_t *bin)
 	if (chunk == head)
 	{
 		head = chunk->fd;
-		if ((*bin = head) == chunk)
+		if (head == chunk)
 		{
 			*bin = (mchunk_t *)0;
 			return ;
 		}
+		*bin = head;
 	}
 	bk = chunk->bk;
 	fd = chunk->fd;
@@ -56,20 +54,18 @@ void	alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t *connect)
 	size_t		chunksize;
 	size_t		nextsize;
 
-	if (chunk->size == size)
-		return ;
-	next = (mchunk_t *)((unsigned long)chunk + size);
-	chunksize = chunk->size;
-	nextsize = UCHUNKSIZE(chunksize) - size;
+	chunksize = CHUNKSIZE(chunk);
+	nextsize = chunksize - size;
+	next = NEXTCHUNK(chunk);
 	if (nextsize < M_MINSIZE)
 	{
-		next = (mchunk_t *)((unsigned long)chunk + UCHUNKSIZE(chunksize));
-		if ((unsigned long)next & (HEAP_SIZE - 1))
-			next->size |= SIZE_PREV_INUSE;
+		next->size |= PREV_INUSE;
 		return ;
 	}
-	chunk->size = size + UCHUNKFLAGS(chunksize);
-	next->size = nextsize | SIZE_PREV_INUSE;
+	next->prevsize = nextsize;
+	chunk->size = size + CHUNKFLAGS(chunk);
+	next = NEXTCHUNK(chunk);
+	next->size = nextsize | PREV_INUSE;
 	if (connect)
 		link_chunk(next, connect);
 }
@@ -78,7 +74,7 @@ mchunk_t	*alloc_newchunk(marena_t *arena, size_t size)
 {
 	mchunk_t	*chunk;
 
-	chunk = arena->bottom;
+	chunk = (mchunk_t *)arena->bottom;
 	if (CHUNKSIZE(chunk) < size)
 		return ((mchunk_t *)0);
 	alloc_partial_chunk(chunk, size, (bin_t *)0);

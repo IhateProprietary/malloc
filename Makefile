@@ -6,7 +6,7 @@
 #    By: jye <marvin@42.fr>                         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/12/19 04:43:40 by jye               #+#    #+#              #
-#    Updated: 2018/12/21 03:22:21 by jye              ###   ########.fr        #
+#    Updated: 2018/12/27 04:22:33 by root             ###   ########.fr        #
 #                                                                              #
 #******************************************************************************#
 
@@ -22,7 +22,7 @@ HOSTTYPE = $(shell uname -m)_$(shell uname -s)
 
 SRCS	= alloc_newchunk arena forsake_fastbins int_alloc_largebin int_free \
 		  int_malloc int_malloc_init int_realloc malloc_public sanity_check \
-          show_mem_alloc unsortedbin
+          show_alloc_mem unsortedbin
 CNAME	= $(addsuffix .c, $(SRCS))
 ONAME	= $(addsuffix .o, $(SRCS))
 
@@ -36,7 +36,7 @@ NAME = $(LIB)$(EXT)
 all: libft_printf.a libft.a $(NAME)
 
 $(NAME): $(OWPATH)
-	$(CC) -shared $^ -Lft_printf -lftprintf -Llibft -lft -o $(LIB)_$(HOSTTYPE)$(EXT)
+	$(CC) -shared $^ -Lft_printf -lftprintf -Llibft -lft -lpthread -o $(LIB)_$(HOSTTYPE)$(EXT)
 	ln -sf $(LIB)_$(HOSTTYPE)$(EXT) $@
 
 $(OFOLDER)/%.o : $(CFOLDER)/%.c

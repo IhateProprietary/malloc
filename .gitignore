@@ -8,3 +8,5 @@ a.out*
 *.o
 obj
 *.so
+*ft_ls*
+*gdb*
