@@ -47,12 +47,12 @@ void	*malloc(size_t size)
 		return ((void *)0);
 	pthread_mutex_lock(&arena->mutex);
 	victim = int_malloc(arena, size);
-	/* if (victim == (void *)0 && arena->fastbinsize >= FASTBIN_MAXSIZE) */
-	/* { */
-	/* 	forsake_fastbins(arena); */
-	/* 	arena->fastbinsize = 0; */
-	/* 	victim = int_malloc(arena, size); */
-	/* } */
+	if (victim == (void *)0 && arena->fastbinsize >= FASTBIN_MAXMEM)
+	{
+		forsake_fastbins(arena);
+		arena->fastbinsize = 0;
+		victim = int_malloc(arena, size);
+	}
 	pthread_mutex_unlock(&arena->mutex);
 	if (victim == (void *)0)
 		victim = malloc2(size);
