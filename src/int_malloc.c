@@ -13,7 +13,7 @@ static mchunk_t	*alloc_fastbin(marena_t *arena, size_t size)
 	if (chunk == (mchunk_t *)0)
 		return ((mchunk_t *)0);
 	arena->fastbins[index] = chunk->fd;
-	link_chunk(chunk, &arena->pool);
+	link_chunk(chunk, USED_POOL(arena));
 	arena->fastbinsize -= size;
 	return (chunk);
 }
@@ -21,19 +21,20 @@ static mchunk_t	*alloc_fastbin(marena_t *arena, size_t size)
 static mchunk_t	*alloc_smallbin(marena_t *arena, size_t size)
 {
 	mchunk_t	*chunk;
-	int			index;
+	int			idx;
 
 	if (size >= LARGEBIN_MINSIZE)
 		return ((mchunk_t *)0);
-	index = SMALLBIN_INDEX(size);
-	while (index < (NSMALLBINS) &&
-		   ((chunk = arena->bins[index]) == (mchunk_t *)0))
-		index++;
-	if (chunk == (mchunk_t *)0)
+	idx = SMALLBIN_INDEX(size);
+	while (idx < NSMALLBINS &&
+		   ((chunk = BIN_AT(arena, idx)) == BIN_AT(arena, idx)->fd))
+		idx++;
+	chunk = chunk->fd;
+	if (idx >= NSMALLBINS)
 		return ((mchunk_t *)0);
-	unlink_chunk(chunk, &arena->bins[index]);
-	alloc_partial_chunk(chunk, size, &arena->unsortedbin);
-	link_chunk(chunk, &arena->pool);
+	unlink_chunk(chunk);
+	alloc_partial_chunk(chunk, size, UNSORTED(arena));
+	link_chunk(chunk, USED_POOL(arena));
 	return (chunk);
 }
 

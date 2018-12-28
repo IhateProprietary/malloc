@@ -39,7 +39,6 @@ void	*malloc(size_t size)
 	marena_t	*arena;
 	void		*victim;
 
-	ft_dprintf(2, "MY MALLOC tm\n");
 	if (mp.malloc_init < 1)
 		int_malloc_init();
 	arena = arena_get();
@@ -70,7 +69,7 @@ void	free(void *mem)
 	{
 		//pthread_mutex___ GLOBAL LOCK BEGIN
 		pthread_mutex_lock(&mp.global);
-		unlink_chunk(chunk, &mp.pool);
+		unlink_chunk(chunk);
 		munmap((void *)chunk, CHUNKSIZE(chunk));
 		//pthread_mutex___ GLOBAL LOCK END
 		pthread_mutex_unlock(&mp.global);
@@ -89,6 +88,11 @@ void	*realloc(void *mem, size_t size)
 		return (malloc(size));
 	if (sanity_check(mem))
 		return ((void *)0);
+	if (size == 0)
+	{
+		free(mem);
+		return ((void *)0);
+	}
 	victim = int_realloc(mem, size);
 	if (victim == (void *)0 && (victim = malloc(size)))
 	{

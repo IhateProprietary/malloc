@@ -21,6 +21,24 @@ static void	*mmap_aligned_heap()
 	return (p2);
 }
 
+void		arena_init_bin(marena_t *arena)
+{
+	mchunk_t	*chunk;
+	int			idx;
+
+	idx = 1;
+	while (idx < NBINS)
+	{
+		chunk = BIN_AT(arena, idx);
+		chunk->fd = chunk;
+		chunk->bk = chunk;
+		idx++;
+	}
+	chunk = USED_POOL(arena);
+	chunk->fd = chunk;
+	chunk->bk = chunk;
+}
+
 marena_t	*arena_new()
 {
 	mutex_t		mutex;
@@ -45,6 +63,7 @@ marena_t	*arena_new()
 	new->bottom = top;
 	mp.narena += 1;
 	((mchunk_t *)top)->size = (HEAP_SIZE - offset - M_MINSIZE) | PREV_INUSE;
+	arena_init_bin(new);
 	return (new);
 }
 

@@ -54,6 +54,8 @@ void	int_malloc_init()
 	}
 	pthread_setspecific(mp.tsd, arena);
 	mp.arena = arena;
+	mp.pool.fd = &mp.pool;
+	mp.pool.bk = &mp.pool;
 	mp.narena = 1;
 	mp.malloc_init = 3;
 	arena->prev = arena;

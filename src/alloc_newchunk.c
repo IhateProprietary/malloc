@@ -1,54 +1,31 @@
 #include <stddef.h>
 #include "malloc_private.h"
 
-void	link_chunk(mchunk_t *chunk, bin_t *bin)
+void	link_chunk(mchunk_t *chunk, mchunk_t *head)
 {
-	mchunk_t	*head;
 	mchunk_t	*bk;
 	mchunk_t	*fd;
 
-	head = *bin;
-	*bin = chunk;
-	if (head)
-	{
-		bk = head->bk;
-		fd = head;
-	}
-	else
-	{
-		bk = chunk;
-		fd = chunk;
-	}
+	bk = head;
+	fd = head->fd;
 	chunk->fd = fd;
 	chunk->bk = bk;
 	fd->bk = chunk;
 	bk->fd = chunk;
 }
 
-void	unlink_chunk(mchunk_t *chunk, bin_t *bin)
+void	unlink_chunk(mchunk_t *chunk)
 {
-	mchunk_t *head;
 	mchunk_t *bk;
 	mchunk_t *fd;
 
-	head = *bin;
-	if (chunk == head)
-	{
-		head = chunk->fd;
-		if (head == chunk)
-		{
-			*bin = (mchunk_t *)0;
-			return ;
-		}
-		*bin = head;
-	}
 	bk = chunk->bk;
 	fd = chunk->fd;
 	bk->fd = fd;
 	fd->bk = bk;
 }
 
-void	alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t *connect)
+void	alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t connect)
 {
 	mchunk_t	*next;
 	size_t		chunksize;
@@ -63,6 +40,7 @@ void	alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t *connect)
 		return ;
 	}
 	next->prevsize = nextsize;
+	UNSETOPT(next, PREV_INUSE);
 	chunk->size = size + CHUNKFLAGS(chunk);
 	next = NEXTCHUNK(chunk);
 	next->size = nextsize | PREV_INUSE;
@@ -77,8 +55,8 @@ mchunk_t	*alloc_newchunk(marena_t *arena, size_t size)
 	chunk = (mchunk_t *)arena->bottom;
 	if (CHUNKSIZE(chunk) < size)
 		return ((mchunk_t *)0);
-	alloc_partial_chunk(chunk, size, (bin_t *)0);
-	arena->bottom += size;
-	link_chunk(chunk, &arena->pool);
+	alloc_partial_chunk(chunk, size, (bin_t)0);
+	arena->bottom += CHUNKSIZE(chunk);
+	link_chunk(chunk, USED_POOL(arena));
 	return (chunk);
 }

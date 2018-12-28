@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include "malloc_private.h"
 
-int		sanity_check_pool(bin_t pool, mutex_t *mutex, void *mem)
+int		sanity_check_pool(mchunk_t *pool, mutex_t *mutex, void *mem)
 {
 	mchunk_t	*chunk;
 	mchunk_t	*mchunk;
@@ -11,12 +11,13 @@ int		sanity_check_pool(bin_t pool, mutex_t *mutex, void *mem)
 	res = 1;
 	pthread_mutex_lock(mutex);
 	mchunk = MEM2CHUNK(mem);
-	if ((chunk = pool) == (mchunk_t *)0)
+	if ((chunk = pool) == pool->fd)
 	{
 		pthread_mutex_unlock(mutex);
 		return (res);
 	}
 	stop = chunk->bk;
+	chunk = chunk->fd;
 	while (res)
 	{
 		res = chunk != mchunk;
@@ -40,8 +41,8 @@ int		sanity_check(void *mem)
 	while (arena)
 	{
 		if ((void *)arena == orig)
-			return (sanity_check_pool(arena->pool, &arena->mutex, mem));
+			return (sanity_check_pool(&arena->pool, &arena->mutex, mem));
 		arena = arena->next;
 	}
-	return (sanity_check_pool(mp.pool, &mp.global, mem));
+	return (sanity_check_pool(&mp.pool, &mp.global, mem));
 }

@@ -1,15 +1,12 @@
 #include <pthread.h>
 #include "malloc_private.h"
 
-mchunk_t	*consolidate_chunk(marena_t *arena, mchunk_t *chunk)
+mchunk_t	*consolidate_chunk(mchunk_t *chunk)
 {
 	mchunk_t	*prev;
 
 	prev = PREVCHUNK(chunk);
-	if (prev == arena->unsortedbin)
-		unlink_chunk(prev, &arena->unsortedbin);
-	else
-		unlink_chunk(prev, &arena->bins[BIN_INDEX(CHUNKSIZE(prev))]);
+	unlink_chunk(prev);
 	prev->size += CHUNKSIZE(chunk);
 	return (prev);
 }
@@ -37,7 +34,7 @@ void	int_free(void *ptr)
 	arena = MEM2ARENA(ptr);
 	//pthread_mutex___ BEGIN
 	pthread_mutex_lock(&arena->mutex);
-	unlink_chunk(chunk, &arena->pool);
+	unlink_chunk(chunk);
 	size = CHUNKSIZE(chunk);
 	if (size <= FASTBIN_MAXSIZE)
 	{
@@ -49,10 +46,10 @@ void	int_free(void *ptr)
 	}
 	next = NEXTCHUNK(chunk);
 	if (!PREVINUSE(chunk))
-		chunk = consolidate_chunk(arena, chunk);
+		chunk = consolidate_chunk(chunk);
 	next->prevsize = CHUNKSIZE(chunk);
 	UNSETOPT(next, PREV_INUSE);
-	link_chunk(chunk, &arena->unsortedbin);
+	link_chunk(chunk, UNSORTED(arena));
 	//pthread_mutex____ END
 	pthread_mutex_unlock(&arena->mutex);
 }

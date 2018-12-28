@@ -22,7 +22,7 @@ HOSTTYPE = $(shell uname -m)_$(shell uname -s)
 
 SRCS	= alloc_newchunk arena forsake_fastbins int_alloc_largebin int_free \
 		  int_malloc int_malloc_init int_realloc malloc_public sanity_check \
-          show_alloc_mem unsortedbin
+          unsortedbin show_alloc_mem
 CNAME	= $(addsuffix .c, $(SRCS))
 ONAME	= $(addsuffix .o, $(SRCS))
 

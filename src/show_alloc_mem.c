@@ -36,9 +36,10 @@ void	dump_large_pool()
 	mchunk_t	*chunk;
 	size_t		size;
 
-	chunk = mp.pool;
-	stop = chunk->bk;
-	while (1)
+	chunk = &mp.pool;
+	stop = chunk;
+	chunk = chunk->fd;
+	while (stop != chunk)
 	{
 		size = CHUNKSIZE(chunk) - SIZE_SZ * 4;
 		mp.used += size;
@@ -60,8 +61,7 @@ void	show_alloc_mem(void)
 	pagemask = mp.pagesize - 1;
 	mp.used =
 		mp.narena * (HEAP_SIZE - ((sizeof(marena_t) + pagemask) & ~pagemask));
-	if (mp.pool)
-		dump_large_pool();
+	dump_large_pool();
 	if (mp.arena)
 	{
 		arena = mp.arena->prev;

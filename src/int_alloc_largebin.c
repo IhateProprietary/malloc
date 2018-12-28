@@ -4,27 +4,26 @@ mchunk_t *alloc_largebin(marena_t *arena, size_t size)
 {
 	mchunk_t	*chunk;
 	mchunk_t	*stop;
-	int			index;
+	int			idx;
 
-	index = LARGEBIN_INDEX(size);
-	while (1)
+	idx = LARGEBIN_INDEX(size);
+	while (idx < NBINS)
 	{
-		while (index < (NBINS) &&
-			   ((chunk = arena->bins[index]) == (mchunk_t *)0))
-			index++;
-		if (chunk == (mchunk_t *)0)
-			return ((mchunk_t *)0);
+		while (idx < (NBINS) && (chunk = BIN_AT(arena, idx))
+			   == BIN_AT(arena, idx)->fd)
+			idx++;
 		stop = chunk->bk;
-		while (chunk->size < size && chunk != stop)
+		chunk = chunk->fd;
+		while (chunk != stop && CHUNKSIZE(chunk) < size)
 			chunk = chunk->fd;
-		if (chunk->size >= size)
+		if (CHUNKSIZE(chunk) >= size)
 			break ;
-		index++;
+		idx++;
 	}
-	if (chunk->size < size)
+	if (idx >= NBINS)
 		return ((mchunk_t *)0);
-	unlink_chunk(chunk, &arena->bins[index]);
-	alloc_partial_chunk(chunk, size, &arena->unsortedbin);
-	link_chunk(chunk, &arena->pool);
+	unlink_chunk(chunk);
+	alloc_partial_chunk(chunk, size, UNSORTED(arena));
+	link_chunk(chunk, USED_POOL(arena));
 	return (chunk);
 }
