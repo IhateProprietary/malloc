@@ -1,6 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   int_alloc_largebin.c                               :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/01/03 02:56:11 by jye               #+#    #+#             */
+/*   Updated: 2019/01/03 02:56:11 by jye              ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "malloc_private.h"
 
-mchunk_t *alloc_largebin(marena_t *arena, size_t size)
+mchunk_t	*alloc_largebin(marena_t *arena, size_t size)
 {
 	mchunk_t	*chunk;
 	mchunk_t	*stop;
@@ -10,7 +22,7 @@ mchunk_t *alloc_largebin(marena_t *arena, size_t size)
 	while (idx < NBINS)
 	{
 		while (idx < (NBINS) && (chunk = BIN_AT(arena, idx))
-			   == BIN_AT(arena, idx)->fd)
+			== BIN_AT(arena, idx)->fd)
 			idx++;
 		stop = chunk->bk;
 		chunk = chunk->fd;

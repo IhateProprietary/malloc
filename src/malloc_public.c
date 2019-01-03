@@ -1,11 +1,23 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   malloc_public.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/01/03 02:34:35 by jye               #+#    #+#             */
+/*   Updated: 2019/01/03 03:23:36 by jye              ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <pthread.h>
 #include <unistd.h>
 #include "libft.h"
 #include "malloc_private.h"
 
-mstate_t	mp;
+mstate_t	g_mp;
 
-static void *malloc2(size_t size)
+static void	*malloc2(size_t size)
 {
 	marena_t	*arena;
 	void		*victim;
@@ -19,7 +31,7 @@ static void *malloc2(size_t size)
 		pthread_mutex_unlock(&arena->mutex);
 		arena = arena->next;
 	}
-	pthread_mutex_lock(&mp.global);	
+	pthread_mutex_lock(&mp.global);
 	if (victim == (void *)0 && (arena = arena_new()) != (marena_t *)0)
 	{
 		victim = int_malloc(arena, size);
@@ -34,7 +46,7 @@ static void *malloc2(size_t size)
 	return (victim);
 }
 
-void	*malloc(size_t size)
+void		*malloc(size_t size)
 {
 	marena_t	*arena;
 	void		*victim;
@@ -58,7 +70,7 @@ void	*malloc(size_t size)
 	return (victim);
 }
 
-void	free(void *mem)
+void		free(void *mem)
 {
 	mchunk_t	*chunk;
 
@@ -67,18 +79,16 @@ void	free(void *mem)
 	chunk = MEM2CHUNK(mem);
 	if (CHUNKMAPPED(chunk))
 	{
-		//pthread_mutex___ GLOBAL LOCK BEGIN
 		pthread_mutex_lock(&mp.global);
 		unlink_chunk(chunk);
 		munmap((void *)chunk, CHUNKSIZE(chunk));
-		//pthread_mutex___ GLOBAL LOCK END
 		pthread_mutex_unlock(&mp.global);
 		return ;
 	}
 	int_free(mem);
 }
 
-void	*realloc(void *mem, size_t size)
+void		*realloc(void *mem, size_t size)
 {
 	void		*victim;
 	mchunk_t	*chunk;
@@ -106,11 +116,13 @@ void	*realloc(void *mem, size_t size)
 }
 
 /*
-** The calloc() function contiguously allocates enough space for count objects that are size bytes of memory each and returns a pointer to the allocated memory.
+** The calloc() function contiguously allocates enough space
+** for count objects that are size bytes of memory each and returns
+** a pointer to the allocated memory.
 ** The allocated memory is filled with bytes of value zero.
 */
 
-void	*calloc(size_t count, size_t size)
+void		*calloc(size_t count, size_t size)
 {
 	size_t	total;
 	void	*victim;
@@ -119,17 +131,4 @@ void	*calloc(size_t count, size_t size)
 	if ((victim = malloc(total)) == (void *)0)
 		return ((void *)0);
 	return (ft_memset(victim, 0, total));
-}
-
-void	*reallocf(void *mem, size_t size)
-{
-	void	*victim;
-
-	victim = realloc(mem, size);
-	if (victim == (void *)0)
-	{
-		free(mem);
-		return ((void *)0);
-	}
-	return (victim);
 }

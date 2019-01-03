@@ -1,26 +1,26 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   malloc.h                                           :+:      :+:    :+:   */
+/*   malloc_public2.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2019/01/03 02:52:37 by jye               #+#    #+#             */
-/*   Updated: 2019/01/03 02:52:39 by jye              ###   ########.fr       */
+/*   Created: 2019/01/03 02:50:22 by jye               #+#    #+#             */
+/*   Updated: 2019/01/03 02:52:51 by jye              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MALLOC_H
-# define MALLOC_H
+#include "malloc.h"
 
-# ifndef size_t
-#  include <stddef.h>
-# endif
+void	*reallocf(void *mem, size_t size)
+{
+	void	*victim;
 
-void	*malloc(size_t size);
-void	free(void *ptr);
-void	*realloc(void *ptr, size_t size);
-void	*calloc(size_t count, size_t size);
-void	*reallocf(void *ptr, size_t size);
-
-#endif
+	victim = realloc(mem, size);
+	if (victim == (void *)0)
+	{
+		free(mem);
+		return ((void *)0);
+	}
+	return (victim);
+}

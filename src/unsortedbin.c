@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   unsortedbin.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/01/03 02:34:09 by jye               #+#    #+#             */
+/*   Updated: 2019/01/03 02:34:10 by jye              ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "malloc_private.h"
 
 static void	insert_chunk_bin(marena_t *arena, mchunk_t *chunk)
@@ -15,10 +27,9 @@ mchunk_t	*alloc_unsortedbin(marena_t *arena, size_t size)
 	mchunk_t	*next;
 	mchunk_t	*stop;
 
-	if ((chunk = UNSORTED(arena)) == UNSORTED(arena)->fd)
+	if ((chunk = UNSORTED(arena)->fd) == UNSORTED(arena))
 		return ((mchunk_t *)0);
-	stop = chunk->bk;
-	chunk = chunk->fd;
+	stop = UNSORTED(arena)->bk;
 	while (chunk != stop)
 	{
 		if (CHUNKSIZE(chunk) >= size)

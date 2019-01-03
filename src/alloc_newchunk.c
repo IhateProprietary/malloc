@@ -1,7 +1,19 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   alloc_newchunk.c                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/01/03 02:31:24 by jye               #+#    #+#             */
+/*   Updated: 2019/01/03 02:31:45 by jye              ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <stddef.h>
 #include "malloc_private.h"
 
-void	link_chunk(mchunk_t *chunk, mchunk_t *head)
+void		link_chunk(mchunk_t *chunk, mchunk_t *head)
 {
 	mchunk_t	*bk;
 	mchunk_t	*fd;
@@ -14,7 +26,7 @@ void	link_chunk(mchunk_t *chunk, mchunk_t *head)
 	bk->fd = chunk;
 }
 
-void	unlink_chunk(mchunk_t *chunk)
+void		unlink_chunk(mchunk_t *chunk)
 {
 	mchunk_t *bk;
 	mchunk_t *fd;
@@ -25,7 +37,7 @@ void	unlink_chunk(mchunk_t *chunk)
 	fd->bk = bk;
 }
 
-void	alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t connect)
+void		alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t connect)
 {
 	mchunk_t	*next;
 	size_t		chunksize;

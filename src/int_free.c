@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   int_free.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/01/03 03:05:01 by jye               #+#    #+#             */
+/*   Updated: 2019/01/03 03:21:16 by jye              ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <pthread.h>
 #include "malloc_private.h"
 
@@ -11,7 +23,7 @@ mchunk_t	*consolidate_chunk(mchunk_t *chunk)
 	return (prev);
 }
 
-void	insert_fastbin(mchunk_t *chunk, bin_t *bin)
+void		insert_fastbin(mchunk_t *chunk, bin_t *bin)
 {
 	mchunk_t *head;
 	mchunk_t *next;
@@ -23,7 +35,7 @@ void	insert_fastbin(mchunk_t *chunk, bin_t *bin)
 	SETOPT(next, PREV_INUSE);
 }
 
-void	int_free(void *ptr)
+void		int_free(void *ptr)
 {
 	mchunk_t	*chunk;
 	mchunk_t	*next;
@@ -32,7 +44,6 @@ void	int_free(void *ptr)
 
 	chunk = MEM2CHUNK(ptr);
 	arena = MEM2ARENA(ptr);
-	//pthread_mutex___ BEGIN
 	pthread_mutex_lock(&arena->mutex);
 	unlink_chunk(chunk);
 	size = CHUNKSIZE(chunk);
@@ -40,7 +51,6 @@ void	int_free(void *ptr)
 	{
 		insert_fastbin(chunk, &arena->fastbins[FASTBIN_INDEX(size)]);
 		arena->fastbinsize += size;
-		//pthread_mutex___ END
 		pthread_mutex_unlock(&arena->mutex);
 		return ;
 	}
@@ -50,6 +60,5 @@ void	int_free(void *ptr)
 	next->prevsize = CHUNKSIZE(chunk);
 	UNSETOPT(next, PREV_INUSE);
 	link_chunk(chunk, UNSORTED(arena));
-	//pthread_mutex____ END
 	pthread_mutex_unlock(&arena->mutex);
 }

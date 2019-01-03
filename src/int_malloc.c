@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   int_malloc.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/01/03 03:21:23 by jye               #+#    #+#             */
+/*   Updated: 2019/01/03 03:23:02 by jye              ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <stddef.h>
 #include "malloc_private.h"
 
@@ -27,7 +39,7 @@ static mchunk_t	*alloc_smallbin(marena_t *arena, size_t size)
 		return ((mchunk_t *)0);
 	idx = SMALLBIN_INDEX(size);
 	while (idx < NSMALLBINS &&
-		   ((chunk = BIN_AT(arena, idx)) == BIN_AT(arena, idx)->fd))
+		((chunk = BIN_AT(arena, idx)) == BIN_AT(arena, idx)->fd))
 		idx++;
 	chunk = chunk->fd;
 	if (idx >= NSMALLBINS)
@@ -57,7 +69,7 @@ static mchunk_t	*alloc_mmap(size_t size)
 	return (mem);
 }
 
-void	*int_malloc(marena_t *arena, size_t size)
+void			*int_malloc(marena_t *arena, size_t size)
 {
 	mchunk_t	*chunk;
 	size_t		alignsize;

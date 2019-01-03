@@ -1,5 +1,17 @@
-#ifndef __MALLOC_PRIVATE__
-# define __MALLOC_PRIVATE__
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   malloc_private.h                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/01/03 03:25:30 by jye               #+#    #+#             */
+/*   Updated: 2019/01/03 03:25:43 by jye              ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef _MALLOC_PRIVATE_H
+# define _MALLOC_PRIVATE_H
 
 # include <stddef.h>
 # include <stdint.h>
@@ -78,49 +90,7 @@
 # define LARGEBIN_INDEX(x) BIN_INDEX2(x)
 # define BIN_INDEX(x) BIN_INDEX1(x)
 
-typedef struct malloc_arena_s	marena_t;
-typedef struct malloc_chunk_s	mchunk_t;
-typedef struct malloc_state_s	mstate_t;
-
-typedef mchunk_t*	bin_t;
-
-typedef pthread_key_t	key_t;
-typedef pthread_mutex_t	mutex_t;
-
-extern mstate_t	mp;
-
-struct	malloc_chunk_s
-{
-	size_t		prevsize;
-	size_t		size;
-	mchunk_t	*fd;
-	mchunk_t	*bk;
-};
-
-struct	malloc_state_s
-{
-	marena_t	*arena;
-	size_t		narena;
-	size_t		used;
-	size_t		pagesize;
-	mchunk_t	pool;
-	mutex_t		global;
-	key_t		tsd;
-	int			malloc_init;
-};
-
-struct	malloc_arena_s
-{
-	marena_t	*next;
-	marena_t	*prev;
-	mutex_t		mutex;
-	size_t		fastbinsize;
-	bin_t		fastbins[NFASTBINS];
-	bin_t		bins[NBINS * 2];
-	mchunk_t	pool;
-	void		*topmost;
-	void		*bottom;
-};
+extern mstate_t	g_mp;
 
 marena_t	*arena_new();
 int			arena_shrunk(marena_t *arena, size_t size);

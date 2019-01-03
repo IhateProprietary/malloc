@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   show_alloc_mem.c                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/01/03 02:32:35 by jye               #+#    #+#             */
+/*   Updated: 2019/01/03 02:34:00 by jye              ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ft_printf.h"
 #include "malloc_private.h"
 
@@ -15,7 +27,7 @@ void	dump_arena_pool(marena_t *arena)
 	idx[1] = -1;
 	while ((void *)chunk < maxheap)
 	{
-		size = CHUNKSIZE(chunk) - (SIZE_SZ * 3);
+		size = CHUNKSIZE(chunk) - (8 * 3);
 		idx[0] = size >= LARGEBIN_MINSIZE;
 		idx[0] += size >= (MMAP_THRESHOLD >> 5);
 		if (idx[0] != idx[1])
@@ -24,13 +36,13 @@ void	dump_arena_pool(marena_t *arena)
 			idx[1] = idx[0];
 		}
 		ft_printf("%p - %p : %lu bytes\n", CHUNK2MEM(chunk), NEXTCHUNK(chunk),
-			   size);
+			size);
 		chunk = NEXTCHUNK(chunk);
 	}
 	pthread_mutex_unlock(&arena->mutex);
 }
 
-void	dump_large_pool()
+void	dump_large_pool(void)
 {
 	mchunk_t	*stop;
 	mchunk_t	*chunk;
@@ -44,7 +56,7 @@ void	dump_large_pool()
 		size = CHUNKSIZE(chunk) - SIZE_SZ * 4;
 		mp.used += size;
 		ft_printf("LARGE: %p\n%p - %p : %lu bytes\n", chunk,
-			   CHUNK2MEM(chunk), NEXTCHUNK(chunk), size);
+			CHUNK2MEM(chunk), NEXTCHUNK(chunk), size);
 		if (chunk == stop)
 			break ;
 		chunk = chunk->fd;

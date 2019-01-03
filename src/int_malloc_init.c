@@ -1,9 +1,21 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   int_malloc_init.c                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/01/03 03:04:13 by jye               #+#    #+#             */
+/*   Updated: 2019/01/03 03:22:33 by jye              ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <pthread.h>
 #include <unistd.h>
 #include <errno.h>
 #include "malloc_private.h"
 
-static int	init_global_lock()
+static int	init_global_lock(void)
 {
 	if (pthread_mutex_trylock(&mp.global) == EBUSY)
 	{
@@ -19,7 +31,7 @@ static int	init_global_lock()
 	return (0);
 }
 
-static int	init_global_key()
+static int	init_global_key(void)
 {
 	if ((pthread_key_create(&mp.tsd, (void (*)(void *))0)) != 0)
 	{
@@ -31,7 +43,17 @@ static int	init_global_key()
 	return (0);
 }
 
-void	int_malloc_init()
+static void	init_global_data(marena_t *arena)
+{
+	mp.arena = arena;
+	mp.pool.fd = &mp.pool;
+	mp.pool.bk = &mp.pool;
+	mp.narena = 1;
+	mp.malloc_init = 3;
+	arena->prev = arena;
+}
+
+void		int_malloc_init(void)
 {
 	marena_t	*arena;
 
@@ -53,11 +75,6 @@ void	int_malloc_init()
 		return ;
 	}
 	pthread_setspecific(mp.tsd, arena);
-	mp.arena = arena;
-	mp.pool.fd = &mp.pool;
-	mp.pool.bk = &mp.pool;
-	mp.narena = 1;
-	mp.malloc_init = 3;
-	arena->prev = arena;
+	init_global_data(arena);
 	pthread_mutex_unlock(&mp.global);
 }

@@ -1,16 +1,28 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   arena.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2019/01/03 02:31:30 by jye               #+#    #+#             */
+/*   Updated: 2019/01/03 02:55:24 by jye              ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <unistd.h>
 #include <pthread.h>
 #include <sys/mman.h>
 #include "libft.h"
 #include "malloc_private.h"
 
-static void	*mmap_aligned_heap()
+static void	*mmap_aligned_heap(void)
 {
 	void	*p1;
 	void	*p2;
 	size_t	remainder;
 	size_t	align;
-	
+
 	if ((p1 = NEW_HEAP(HEAP_SIZE << 1)) == (void *)MAP_FAILED)
 		return ((void *)MAP_FAILED);
 	align = -((unsigned long)p1) & (HEAP_SIZE - 1);
@@ -39,7 +51,7 @@ void		arena_init_bin(marena_t *arena)
 	chunk->bk = chunk;
 }
 
-marena_t	*arena_new()
+marena_t	*arena_new(void)
 {
 	mutex_t		mutex;
 	marena_t	*new;
@@ -67,7 +79,7 @@ marena_t	*arena_new()
 	return (new);
 }
 
-marena_t	*arena_get()
+marena_t	*arena_get(void)
 {
 	marena_t	*arena;
 
