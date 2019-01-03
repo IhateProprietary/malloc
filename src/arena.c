@@ -6,7 +6,7 @@
 /*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/03 02:31:30 by jye               #+#    #+#             */
-/*   Updated: 2019/01/03 02:55:24 by jye              ###   ########.fr       */
+/*   Updated: 2019/01/03 03:32:31 by jye              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,12 +84,12 @@ t_marena	*arena_get(void)
 	t_marena	*arena;
 
 	arena = (t_marena *)pthread_getspecific(mp.tsd);
-	if (!arena || pthread_t_mutexrylock(&arena->mutex) != 0)
+	if (!arena || pthread_mutex_trylock(&arena->mutex) != 0)
 	{
 		arena = mp.arena;
 		while (arena)
 		{
-			if (pthread_t_mutexrylock(&arena->mutex) == 0)
+			if (pthread_mutex_trylock(&arena->mutex) == 0)
 				break ;
 			arena = arena->next;
 		}

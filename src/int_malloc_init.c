@@ -6,7 +6,7 @@
 /*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/03 03:04:13 by jye               #+#    #+#             */
-/*   Updated: 2019/01/03 03:22:33 by jye              ###   ########.fr       */
+/*   Updated: 2019/01/03 03:32:56 by jye              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 
 static int	init_global_lock(void)
 {
-	if (pthread_t_mutexrylock(&mp.global) == EBUSY)
+	if (pthread_mutex_trylock(&mp.global) == EBUSY)
 	{
 		pthread_mutex_lock(&mp.global);
 		pthread_mutex_unlock(&mp.global);
