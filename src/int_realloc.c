@@ -13,10 +13,10 @@
 #include <stddef.h>
 #include "malloc_private.h"
 
-void	grow_chunk(marena_t *arena, mchunk_t *chunk, size_t size)
+void	grow_chunk(t_marena *arena, t_mchunk *chunk, size_t size)
 {
-	mchunk_t	*next;
-	mchunk_t	*prev;
+	t_mchunk	*next;
+	t_mchunk	*prev;
 	void		*heapmax;
 	size_t		cursize;
 
@@ -40,8 +40,8 @@ void	grow_chunk(marena_t *arena, mchunk_t *chunk, size_t size)
 
 void	*int_realloc(void *mem, size_t size)
 {
-	mchunk_t	*chunk;
-	marena_t	*arena;
+	t_mchunk	*chunk;
+	t_marena	*arena;
 	size_t		chunksize;
 	size_t		alignsize;
 

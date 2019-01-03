@@ -12,7 +12,7 @@
 
 #include "malloc_private.h"
 
-static void	insert_chunk_bin(marena_t *arena, mchunk_t *chunk)
+static void	insert_chunk_bin(t_marena *arena, t_mchunk *chunk)
 {
 	int			idx;
 
@@ -21,14 +21,14 @@ static void	insert_chunk_bin(marena_t *arena, mchunk_t *chunk)
 	link_chunk(chunk, BIN_AT(arena, idx));
 }
 
-mchunk_t	*alloc_unsortedbin(marena_t *arena, size_t size)
+t_mchunk	*alloc_unsortedbin(t_marena *arena, size_t size)
 {
-	mchunk_t	*chunk;
-	mchunk_t	*next;
-	mchunk_t	*stop;
+	t_mchunk	*chunk;
+	t_mchunk	*next;
+	t_mchunk	*stop;
 
 	if ((chunk = UNSORTED(arena)->fd) == UNSORTED(arena))
-		return ((mchunk_t *)0);
+		return ((t_mchunk *)0);
 	stop = UNSORTED(arena)->bk;
 	while (chunk != stop)
 	{
@@ -47,5 +47,5 @@ mchunk_t	*alloc_unsortedbin(marena_t *arena, size_t size)
 		return (chunk);
 	}
 	insert_chunk_bin(arena, chunk);
-	return ((mchunk_t *)0);
+	return ((t_mchunk *)0);
 }

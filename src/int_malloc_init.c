@@ -17,7 +17,7 @@
 
 static int	init_global_lock(void)
 {
-	if (pthread_mutex_trylock(&mp.global) == EBUSY)
+	if (pthread_t_mutexrylock(&mp.global) == EBUSY)
 	{
 		pthread_mutex_lock(&mp.global);
 		pthread_mutex_unlock(&mp.global);
@@ -43,7 +43,7 @@ static int	init_global_key(void)
 	return (0);
 }
 
-static void	init_global_data(marena_t *arena)
+static void	init_global_data(t_marena *arena)
 {
 	mp.arena = arena;
 	mp.pool.fd = &mp.pool;
@@ -55,7 +55,7 @@ static void	init_global_data(marena_t *arena)
 
 void		int_malloc_init(void)
 {
-	marena_t	*arena;
+	t_marena	*arena;
 
 	if (mp.malloc_init >= 1)
 		return ;
@@ -66,7 +66,7 @@ void		int_malloc_init(void)
 	pthread_mutex_lock(&mp.global);
 	if (init_global_key())
 		return ;
-	if ((arena = arena_new(HEAP_SIZE)) == (marena_t *)0)
+	if ((arena = arena_new(HEAP_SIZE)) == (t_marena *)0)
 	{
 		mp.malloc_init = 2;
 		pthread_key_delete(mp.tsd);

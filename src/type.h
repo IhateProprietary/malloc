@@ -6,52 +6,57 @@
 /*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/03 03:24:00 by jye               #+#    #+#             */
-/*   Updated: 2019/01/03 03:26:00 by jye              ###   ########.fr       */
+/*   Updated: 2019/01/03 03:29:49 by jye              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef TYPE_H
 # define TYPE_H
 
-typedef struct malloc_arena_s	marena_t;
-typedef struct malloc_chunk_s	mchunk_t;
-typedef struct malloc_state_s	mstate_t;
+# define NFASTBINS	10
+# define NSMALLBINS	64
+# define NBINS		128
 
-typedef mchunk_t*				bin_t;
+typedef struct malloc_arena_s	t_marena;
+typedef struct malloc_chunk_s	t_mchunk;
+typedef struct malloc_state_s	t_mstate;
 
-typedef pthread_key_t			key_t;
-typedef pthread_mutex_t			mutex_t;
+typedef t_mchunk*				t_bin;
 
-struct							malloc_chunk_s
+typedef pthread_key_t			t_key;
+typedef pthread_mutex_t			t_mutex;
+
+struct							s_malloc_chunk
 {
 	size_t		prevsize;
 	size_t		size;
-	mchunk_t	*fd;
-	mchunk_t	*bk;
+	t_mchunk	*fd;
+	t_mchunk	*bk;
 };
 
-struct							malloc_state_s
+struct							s_malloc_state
 {
-	marena_t	*arena;
+	t_marena	*arena;
 	size_t		narena;
 	size_t		used;
 	size_t		pagesize;
-	mchunk_t	pool;
-	mutex_t		global;
+	t_mchunk	pool;
+	t_mutex		global;
 	key_t		tsd;
 	int			malloc_init;
 };
 
-struct							malloc_arena_s
+struct							s_malloc_arena
 {
-	marena_t	*next;
-	marena_t	*prev;
-	mutex_t		mutex;
+	t_marena	*next;
+	t_marena	*prev;
+	t_mutex		mutex;
 	size_t		fastbinsize;
-	bin_t		fastbins[NFASTBINS];
-	bin_t		bins[NBINS * 2];
-	mchunk_t	pool;
+	t_bin		fastbins[NFASTBINS];
+	t_bin		bins[NBINS * 2];
+	t_mchunk	pool;
 	void		*topmost;
 	void		*bottom;
 };
+
 #endif

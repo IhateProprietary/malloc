@@ -13,17 +13,17 @@
 #include "ft_printf.h"
 #include "malloc_private.h"
 
-void	dump_arena_pool(marena_t *arena)
+void	dump_arena_pool(t_marena *arena)
 {
 	static char	*human_size[3] = {"TINY", "SMALL", "LARGE"};
-	mchunk_t	*chunk;
+	t_mchunk	*chunk;
 	size_t		size;
 	int			idx[2];
 	void		*maxheap;
 
 	pthread_mutex_lock(&arena->mutex);
 	maxheap = (void *)((unsigned long)arena + HEAP_SIZE - M_MINSIZE);
-	chunk = (mchunk_t *)arena->topmost;
+	chunk = (t_mchunk *)arena->topmost;
 	idx[1] = -1;
 	while ((void *)chunk < maxheap)
 	{
@@ -44,8 +44,8 @@ void	dump_arena_pool(marena_t *arena)
 
 void	dump_large_pool(void)
 {
-	mchunk_t	*stop;
-	mchunk_t	*chunk;
+	t_mchunk	*stop;
+	t_mchunk	*chunk;
 	size_t		size;
 
 	chunk = &mp.pool;
@@ -65,14 +65,14 @@ void	dump_large_pool(void)
 
 void	show_alloc_mem(void)
 {
-	marena_t	*arena;
+	t_marena	*arena;
 	size_t		pagemask;
 	void		*stop;
 
 	pthread_mutex_lock(&mp.global);
 	pagemask = mp.pagesize - 1;
 	mp.used =
-		mp.narena * (HEAP_SIZE - ((sizeof(marena_t) + pagemask) & ~pagemask));
+		mp.narena * (HEAP_SIZE - ((sizeof(t_marena) + pagemask) & ~pagemask));
 	dump_large_pool();
 	if (mp.arena)
 	{

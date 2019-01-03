@@ -12,11 +12,11 @@
 
 #include "malloc_private.h"
 
-void	forsake_fastbins(marena_t *arena)
+void	forsake_fastbins(t_marena *arena)
 {
-	mchunk_t	*chunk;
-	mchunk_t	*next;
-	mchunk_t	*fd;
+	t_mchunk	*chunk;
+	t_mchunk	*next;
+	t_mchunk	*fd;
 	int			idx;
 
 	idx = 0;
@@ -36,6 +36,6 @@ void	forsake_fastbins(marena_t *arena)
 			link_chunk(chunk, UNSORTED(arena));
 			chunk = fd;
 		}
-		arena->fastbins[idx++] = (mchunk_t *)0;
+		arena->fastbins[idx++] = (t_mchunk *)0;
 	}
 }

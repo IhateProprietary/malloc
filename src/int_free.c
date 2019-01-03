@@ -13,9 +13,9 @@
 #include <pthread.h>
 #include "malloc_private.h"
 
-mchunk_t	*consolidate_chunk(mchunk_t *chunk)
+t_mchunk	*consolidate_chunk(t_mchunk *chunk)
 {
-	mchunk_t	*prev;
+	t_mchunk	*prev;
 
 	prev = PREVCHUNK(chunk);
 	unlink_chunk(prev);
@@ -23,10 +23,10 @@ mchunk_t	*consolidate_chunk(mchunk_t *chunk)
 	return (prev);
 }
 
-void		insert_fastbin(mchunk_t *chunk, bin_t *bin)
+void		insert_fastbin(t_mchunk *chunk, t_bin *bin)
 {
-	mchunk_t *head;
-	mchunk_t *next;
+	t_mchunk *head;
+	t_mchunk *next;
 
 	head = *bin;
 	*bin = chunk;
@@ -37,9 +37,9 @@ void		insert_fastbin(mchunk_t *chunk, bin_t *bin)
 
 void		int_free(void *ptr)
 {
-	mchunk_t	*chunk;
-	mchunk_t	*next;
-	marena_t	*arena;
+	t_mchunk	*chunk;
+	t_mchunk	*next;
+	t_marena	*arena;
 	size_t		size;
 
 	chunk = MEM2CHUNK(ptr);

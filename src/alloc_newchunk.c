@@ -13,10 +13,10 @@
 #include <stddef.h>
 #include "malloc_private.h"
 
-void		link_chunk(mchunk_t *chunk, mchunk_t *head)
+void		link_chunk(t_mchunk *chunk, t_mchunk *head)
 {
-	mchunk_t	*bk;
-	mchunk_t	*fd;
+	t_mchunk	*bk;
+	t_mchunk	*fd;
 
 	bk = head;
 	fd = head->fd;
@@ -26,10 +26,10 @@ void		link_chunk(mchunk_t *chunk, mchunk_t *head)
 	bk->fd = chunk;
 }
 
-void		unlink_chunk(mchunk_t *chunk)
+void		unlink_chunk(t_mchunk *chunk)
 {
-	mchunk_t *bk;
-	mchunk_t *fd;
+	t_mchunk *bk;
+	t_mchunk *fd;
 
 	bk = chunk->bk;
 	fd = chunk->fd;
@@ -37,9 +37,9 @@ void		unlink_chunk(mchunk_t *chunk)
 	fd->bk = bk;
 }
 
-void		alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t connect)
+void		alloc_partial_chunk(t_mchunk *chunk, size_t size, t_bin connect)
 {
-	mchunk_t	*next;
+	t_mchunk	*next;
 	size_t		chunksize;
 	size_t		nextsize;
 
@@ -60,14 +60,14 @@ void		alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t connect)
 		link_chunk(next, connect);
 }
 
-mchunk_t	*alloc_newchunk(marena_t *arena, size_t size)
+t_mchunk	*alloc_newchunk(t_marena *arena, size_t size)
 {
-	mchunk_t	*chunk;
+	t_mchunk	*chunk;
 
-	chunk = (mchunk_t *)arena->bottom;
+	chunk = (t_mchunk *)arena->bottom;
 	if (CHUNKSIZE(chunk) < size)
-		return ((mchunk_t *)0);
-	alloc_partial_chunk(chunk, size, (bin_t)0);
+		return ((t_mchunk *)0);
+	alloc_partial_chunk(chunk, size, (t_bin)0);
 	arena->bottom += CHUNKSIZE(chunk);
 	link_chunk(chunk, USED_POOL(arena));
 	return (chunk);

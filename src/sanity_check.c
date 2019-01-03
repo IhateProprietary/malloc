@@ -13,11 +13,11 @@
 #include <stddef.h>
 #include "malloc_private.h"
 
-int		sanity_check_pool(mchunk_t *pool, mutex_t *mutex, void *mem)
+int		sanity_check_pool(t_mchunk *pool, t_mutex *mutex, void *mem)
 {
-	mchunk_t	*chunk;
-	mchunk_t	*mchunk;
-	mchunk_t	*stop;
+	t_mchunk	*chunk;
+	t_mchunk	*mchunk;
+	t_mchunk	*stop;
 	int			res;
 
 	res = 1;
@@ -44,7 +44,7 @@ int		sanity_check_pool(mchunk_t *pool, mutex_t *mutex, void *mem)
 int		sanity_check(void *mem)
 {
 	void		*orig;
-	marena_t	*arena;
+	t_marena	*arena;
 
 	if ((unsigned long)mem & M_ALIGN_MASK)
 		return (1);

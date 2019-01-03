@@ -15,11 +15,11 @@
 #include "libft.h"
 #include "malloc_private.h"
 
-mstate_t	g_mp;
+t_mstate	g_mp;
 
 static void	*malloc2(size_t size)
 {
-	marena_t	*arena;
+	t_marena	*arena;
 	void		*victim;
 
 	victim = (void *)0;
@@ -32,7 +32,7 @@ static void	*malloc2(size_t size)
 		arena = arena->next;
 	}
 	pthread_mutex_lock(&mp.global);
-	if (victim == (void *)0 && (arena = arena_new()) != (marena_t *)0)
+	if (victim == (void *)0 && (arena = arena_new()) != (t_marena *)0)
 	{
 		victim = int_malloc(arena, size);
 		arena->next = mp.arena;
@@ -48,13 +48,13 @@ static void	*malloc2(size_t size)
 
 void		*malloc(size_t size)
 {
-	marena_t	*arena;
+	t_marena	*arena;
 	void		*victim;
 
 	if (mp.malloc_init < 1)
 		int_malloc_init();
 	arena = arena_get();
-	if (arena == (marena_t *)0)
+	if (arena == (t_marena *)0)
 		return ((void *)0);
 	pthread_mutex_lock(&arena->mutex);
 	victim = int_malloc(arena, size);
@@ -72,7 +72,7 @@ void		*malloc(size_t size)
 
 void		free(void *mem)
 {
-	mchunk_t	*chunk;
+	t_mchunk	*chunk;
 
 	if (mem == (void *)0 || sanity_check(mem))
 		return ;
@@ -91,7 +91,7 @@ void		free(void *mem)
 void		*realloc(void *mem, size_t size)
 {
 	void		*victim;
-	mchunk_t	*chunk;
+	t_mchunk	*chunk;
 	size_t		chunksize;
 
 	if (mem == (void *)0)

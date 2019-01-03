@@ -6,12 +6,12 @@
 /*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/03 03:25:30 by jye               #+#    #+#             */
-/*   Updated: 2019/01/03 03:25:43 by jye              ###   ########.fr       */
+/*   Updated: 2019/01/03 03:30:05 by jye              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef _MALLOC_PRIVATE_H
-# define _MALLOC_PRIVATE_H
+#ifndef MALLOC_PRIVATE_H
+# define MALLOC_PRIVATE_H
 
 # include <stddef.h>
 # include <stdint.h>
@@ -34,8 +34,8 @@
 # define UNSETOPT(x, opt)	((x)->size &= ~(opt))
 # define SETNEXTOPT(x, opt)		(SETOPT((NEXTCHUNK(x)), (opt)))
 # define UNSETNEXTOPT(x, opt)	(UNSETOPT((NEXTCHUNK(x)), (opt)))
-# define NEXTCHUNK(x)	((mchunk_t *)((unsigned long)(x) + CHUNKSIZE(x)))
-# define PREVCHUNK(x)	((mchunk_t *)((unsigned long)(x) - (x)->prevsize))
+# define NEXTCHUNK(x)	((t_mchunk *)((unsigned long)(x) + CHUNKSIZE(x)))
+# define PREVCHUNK(x)	((t_mchunk *)((unsigned long)(x) - (x)->prevsize))
 
 # define MMAP_FLAGS (MAP_ANONYMOUS | MAP_PRIVATE)
 # define MPROT_FLAGS (PROT_WRITE | PROT_READ)
@@ -47,23 +47,19 @@
 # define TRIM_SIZE			(128 * 1024)
 
 # define M_ALIGNEMENT	(SIZE_SZ << 1)
-# define M_MINSIZE		(sizeof(mchunk_t))
+# define M_MINSIZE		(sizeof(t_mchunk))
 # define M_ALIGN_MASK	(M_ALIGNEMENT - 1)
 # define SIZE_SZ		__SIZEOF_SIZE_T__
 # define CHUNK2MEM(ptr)	(((void *)(ptr)) + SIZE_SZ * 4)
 # define MEM2CHUNK(ptr)	(((void *)(ptr)) - SIZE_SZ * 4)
 # define MEM2ARENA(ptr)	((void *)((unsigned long)(ptr) & ~(HEAP_SIZE - 1)))
 # define O_	(SIZE_SZ << 1)
-# define BIN_AT(a, i)	((bin_t)((char *)&((a)->bins[(i) << 1]) - O_))
+# define BIN_AT(a, i)	((t_bin)((char *)&((a)->bins[(i) << 1]) - O_))
 # define UNSORTED(a)	(BIN_AT((a), 1))
-# define USED_POOL(a)	((mchunk_t *)&(a)->pool)
+# define USED_POOL(a)	((t_mchunk *)&(a)->pool)
 # define REQCHECK(x)	((x) < M_MINSIZE)
 # define REQALIGN(x)	(((x) + (SIZE_SZ * 3) + M_ALIGN_MASK) & ~(M_ALIGN_MASK))
 # define REQ2SIZE(req, nb)	(REQCHECK((nb = REQALIGN(req))) ? M_MINSIZE : nb)
-
-# define NFASTBINS	10
-# define NSMALLBINS	64
-# define NBINS		128
 
 # define FASTBIN_MAXSIZE	(8 * NFASTBINS)
 # define FASTBIN_MAXMEM		(64 * 1024)
@@ -90,27 +86,27 @@
 # define LARGEBIN_INDEX(x) BIN_INDEX2(x)
 # define BIN_INDEX(x) BIN_INDEX1(x)
 
-extern mstate_t	g_mp;
+extern t_mstate	g_mp;
 
-marena_t	*arena_new();
-int			arena_shrunk(marena_t *arena, size_t size);
-int			arena_grow(marena_t *arena, size_t size);
-marena_t	*arena_get();
+t_marena	*arena_new();
+int			arena_shrunk(t_marena *arena, size_t size);
+int			arena_grow(t_marena *arena, size_t size);
+t_marena	*arena_get();
 
 void		int_malloc_init();
-void		*int_malloc(marena_t *arena, size_t size);
+void		*int_malloc(t_marena *arena, size_t size);
 void		int_free(void *ptr);
 void		*int_realloc(void *ptr, size_t size);
 
-void		alloc_partial_chunk(mchunk_t *chunk, size_t size, bin_t connect);
-void		link_chunk(mchunk_t *chunk, mchunk_t *head);
-void		unlink_chunk(mchunk_t *chunk);
-mchunk_t	*alloc_largebin(marena_t *arena, size_t size);
-mchunk_t	*alloc_newchunk(marena_t *arena, size_t size);
+void		alloc_partial_chunk(t_mchunk *chunk, size_t size, t_bin connect);
+void		link_chunk(t_mchunk *chunk, t_mchunk *head);
+void		unlink_chunk(t_mchunk *chunk);
+t_mchunk	*alloc_largebin(t_marena *arena, size_t size);
+t_mchunk	*alloc_newchunk(t_marena *arena, size_t size);
 
-mchunk_t	*alloc_unsortedbin(marena_t *arena, size_t size);
-mchunk_t	*consolidate_chunk(mchunk_t *chunk);
-void		forsake_fastbins(marena_t *arena);
+t_mchunk	*alloc_unsortedbin(t_marena *arena, size_t size);
+t_mchunk	*consolidate_chunk(t_mchunk *chunk);
+void		forsake_fastbins(t_marena *arena);
 int			sanity_check(void *mem);
 
 #endif

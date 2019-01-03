@@ -12,10 +12,10 @@
 
 #include "malloc_private.h"
 
-mchunk_t	*alloc_largebin(marena_t *arena, size_t size)
+t_mchunk	*alloc_largebin(t_marena *arena, size_t size)
 {
-	mchunk_t	*chunk;
-	mchunk_t	*stop;
+	t_mchunk	*chunk;
+	t_mchunk	*stop;
 	int			idx;
 
 	idx = LARGEBIN_INDEX(size);
@@ -33,7 +33,7 @@ mchunk_t	*alloc_largebin(marena_t *arena, size_t size)
 		idx++;
 	}
 	if (idx >= NBINS)
-		return ((mchunk_t *)0);
+		return ((t_mchunk *)0);
 	unlink_chunk(chunk);
 	alloc_partial_chunk(chunk, size, UNSORTED(arena));
 	link_chunk(chunk, USED_POOL(arena));
