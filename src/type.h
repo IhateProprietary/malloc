@@ -6,7 +6,7 @@
 /*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/03 03:24:00 by jye               #+#    #+#             */
-/*   Updated: 2019/01/03 03:29:49 by jye              ###   ########.fr       */
+/*   Updated: 2019/01/03 03:36:26 by jye              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,9 @@
 # define NSMALLBINS	64
 # define NBINS		128
 
-typedef struct malloc_arena_s	t_marena;
-typedef struct malloc_chunk_s	t_mchunk;
-typedef struct malloc_state_s	t_mstate;
+typedef struct s_malloc_arena	t_marena;
+typedef struct s_malloc_chunk	t_mchunk;
+typedef struct s_malloc_state	t_mstate;
 
 typedef t_mchunk*				t_bin;
 
@@ -42,7 +42,7 @@ struct							s_malloc_state
 	size_t		pagesize;
 	t_mchunk	pool;
 	t_mutex		global;
-	key_t		tsd;
+	t_key		tsd;
 	int			malloc_init;
 };
 

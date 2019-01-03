@@ -6,7 +6,7 @@
 /*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/03 02:34:35 by jye               #+#    #+#             */
-/*   Updated: 2019/01/03 03:23:36 by jye              ###   ########.fr       */
+/*   Updated: 2019/01/03 05:17:08 by jye              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ static void	*malloc2(size_t size)
 	void		*victim;
 
 	victim = (void *)0;
-	arena = mp.arena;
+	arena = g_mp.arena;
 	while (arena && victim == (void *)0)
 	{
 		pthread_mutex_lock(&arena->mutex);
@@ -31,18 +31,18 @@ static void	*malloc2(size_t size)
 		pthread_mutex_unlock(&arena->mutex);
 		arena = arena->next;
 	}
-	pthread_mutex_lock(&mp.global);
+	pthread_mutex_lock(&g_mp.global);
 	if (victim == (void *)0 && (arena = arena_new()) != (t_marena *)0)
 	{
 		victim = int_malloc(arena, size);
-		arena->next = mp.arena;
-		arena->prev = mp.arena->prev;
-		mp.arena->prev = arena;
-		mp.arena = arena;
+		arena->next = g_mp.arena;
+		arena->prev = g_mp.arena->prev;
+		g_mp.arena->prev = arena;
+		g_mp.arena = arena;
 	}
-	pthread_mutex_unlock(&mp.global);
+	pthread_mutex_unlock(&g_mp.global);
 	if (arena)
-		pthread_setspecific(mp.tsd, (void *)arena);
+		pthread_setspecific(g_mp.tsd, (void *)arena);
 	return (victim);
 }
 
@@ -51,7 +51,7 @@ void		*malloc(size_t size)
 	t_marena	*arena;
 	void		*victim;
 
-	if (mp.malloc_init < 1)
+	if (g_mp.malloc_init < 1)
 		int_malloc_init();
 	arena = arena_get();
 	if (arena == (t_marena *)0)
@@ -79,10 +79,10 @@ void		free(void *mem)
 	chunk = MEM2CHUNK(mem);
 	if (CHUNKMAPPED(chunk))
 	{
-		pthread_mutex_lock(&mp.global);
+		pthread_mutex_lock(&g_mp.global);
 		unlink_chunk(chunk);
 		munmap((void *)chunk, CHUNKSIZE(chunk));
-		pthread_mutex_unlock(&mp.global);
+		pthread_mutex_unlock(&g_mp.global);
 		return ;
 	}
 	int_free(mem);

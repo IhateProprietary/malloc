@@ -48,7 +48,7 @@ int		sanity_check(void *mem)
 
 	if ((unsigned long)mem & M_ALIGN_MASK)
 		return (1);
-	arena = mp.arena;
+	arena = g_mp.arena;
 	orig = MEM2ARENA(mem);
 	while (arena)
 	{
@@ -56,5 +56,5 @@ int		sanity_check(void *mem)
 			return (sanity_check_pool(&arena->pool, &arena->mutex, mem));
 		arena = arena->next;
 	}
-	return (sanity_check_pool(&mp.pool, &mp.global, mem));
+	return (sanity_check_pool(&g_mp.pool, &g_mp.global, mem));
 }

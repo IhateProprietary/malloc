@@ -6,12 +6,12 @@
 #    By: jye <marvin@42.fr>                         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/12/19 04:43:40 by jye               #+#    #+#              #
-#    Updated: 2018/12/27 04:22:33 by root             ###   ########.fr        #
+#    Updated: 2019/01/03 03:34:48 by jye              ###   ########.fr        #
 #                                                                              #
 #******************************************************************************#
 
 CC		= gcc
-CFLAGS	= -Wall -Wextra -fPIC
+CFLAGS	= -Wall -Wextra -Werror -fPIC
 CDEBUG	= -g3
 
 CFOLDER	= src
@@ -22,7 +22,7 @@ HOSTTYPE = $(shell uname -m)_$(shell uname -s)
 
 SRCS	= alloc_newchunk arena forsake_fastbins int_alloc_largebin int_free \
 		  int_malloc int_malloc_init int_realloc malloc_public sanity_check \
-          unsortedbin show_alloc_mem
+          unsortedbin show_alloc_mem malloc_public2
 CNAME	= $(addsuffix .c, $(SRCS))
 ONAME	= $(addsuffix .o, $(SRCS))
 

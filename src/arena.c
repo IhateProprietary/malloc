@@ -68,12 +68,12 @@ t_marena	*arena_new(void)
 	}
 	ft_memset(new, 0, sizeof(t_marena));
 	ft_memcpy(&new->mutex, &mutex, sizeof(mutex));
-	pagemask = mp.pagesize - 1;
+	pagemask = g_mp.pagesize - 1;
 	top = (void *)((char *)new + ((sizeof(t_marena) + pagemask) & ~pagemask));
 	offset = (unsigned long)top - (unsigned long)new;
 	new->topmost = top;
 	new->bottom = top;
-	mp.narena += 1;
+	g_mp.narena += 1;
 	((t_mchunk *)top)->size = (HEAP_SIZE - offset - M_MINSIZE) | PREV_INUSE;
 	arena_init_bin(new);
 	return (new);
@@ -83,24 +83,24 @@ t_marena	*arena_get(void)
 {
 	t_marena	*arena;
 
-	arena = (t_marena *)pthread_getspecific(mp.tsd);
+	arena = (t_marena *)pthread_getspecific(g_mp.tsd);
 	if (!arena || pthread_mutex_trylock(&arena->mutex) != 0)
 	{
-		arena = mp.arena;
+		arena = g_mp.arena;
 		while (arena)
 		{
 			if (pthread_mutex_trylock(&arena->mutex) == 0)
 				break ;
 			arena = arena->next;
 		}
-		pthread_setspecific(mp.tsd, (void *)arena);
+		pthread_setspecific(g_mp.tsd, (void *)arena);
 	}
 	if (arena)
 		pthread_mutex_unlock(&arena->mutex);
 	else
 	{
 		arena = arena_new();
-		pthread_setspecific(mp.tsd, (void *)arena);
+		pthread_setspecific(g_mp.tsd, (void *)arena);
 	}
 	return (arena);
 }

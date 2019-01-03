@@ -57,15 +57,15 @@ static t_mchunk	*alloc_mmap(size_t size)
 	size_t		pagemask;
 	size_t		mmapsize;
 
-	pagemask = mp.pagesize - 1;
+	pagemask = g_mp.pagesize - 1;
 	mmapsize = (size + pagemask) & ~pagemask;
 	if ((mem = NEW_HEAP(mmapsize)) == (void *)MAP_FAILED)
 		return ((t_mchunk *)0);
 	chunk = mem;
 	chunk->size = mmapsize | IS_MAPPED;
-	pthread_mutex_lock(&mp.global);
-	link_chunk(chunk, &mp.pool);
-	pthread_mutex_unlock(&mp.global);
+	pthread_mutex_lock(&g_mp.global);
+	link_chunk(chunk, &g_mp.pool);
+	pthread_mutex_unlock(&g_mp.global);
 	return (mem);
 }
 

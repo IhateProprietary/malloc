@@ -48,13 +48,13 @@ void	dump_large_pool(void)
 	t_mchunk	*chunk;
 	size_t		size;
 
-	chunk = &mp.pool;
+	chunk = &g_mp.pool;
 	stop = chunk;
 	chunk = chunk->fd;
 	while (stop != chunk)
 	{
 		size = CHUNKSIZE(chunk) - SIZE_SZ * 4;
-		mp.used += size;
+		g_mp.used += size;
 		ft_printf("LARGE: %p\n%p - %p : %lu bytes\n", chunk,
 			CHUNK2MEM(chunk), NEXTCHUNK(chunk), size);
 		if (chunk == stop)
@@ -69,15 +69,15 @@ void	show_alloc_mem(void)
 	size_t		pagemask;
 	void		*stop;
 
-	pthread_mutex_lock(&mp.global);
-	pagemask = mp.pagesize - 1;
-	mp.used =
-		mp.narena * (HEAP_SIZE - ((sizeof(t_marena) + pagemask) & ~pagemask));
+	pthread_mutex_lock(&g_mp.global);
+	pagemask = g_mp.pagesize - 1;
+	g_mp.used =
+		g_mp.narena * (HEAP_SIZE - ((sizeof(t_marena) + pagemask) & ~pagemask));
 	dump_large_pool();
-	if (mp.arena)
+	if (g_mp.arena)
 	{
-		arena = mp.arena->prev;
-		stop = (void *)mp.arena;
+		arena = g_mp.arena->prev;
+		stop = (void *)g_mp.arena;
 		while (1)
 		{
 			dump_arena_pool(arena);
@@ -86,6 +86,6 @@ void	show_alloc_mem(void)
 			arena = arena->prev;
 		}
 	}
-	ft_printf("Total : %lu\n", mp.used);
-	pthread_mutex_unlock(&mp.global);
+	ft_printf("Total : %lu\n", g_mp.used);
+	pthread_mutex_unlock(&g_mp.global);
 }

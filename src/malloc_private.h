@@ -6,7 +6,7 @@
 /*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/03 03:25:30 by jye               #+#    #+#             */
-/*   Updated: 2019/01/03 03:30:05 by jye              ###   ########.fr       */
+/*   Updated: 2019/01/03 03:35:25 by jye              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 # include <sys/mman.h>
 # include <unistd.h>
 # include <pthread.h>
+# include "type.h"
 
 # if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
 #  define MAP_ANONYMOUS MAP_ANON
