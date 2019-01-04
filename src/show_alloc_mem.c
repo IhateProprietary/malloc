@@ -6,7 +6,7 @@
 /*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/03 02:32:35 by jye               #+#    #+#             */
-/*   Updated: 2019/01/03 02:34:00 by jye              ###   ########.fr       */
+/*   Updated: 2019/01/04 05:57:01 by jye              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ void	dump_arena_pool(t_marena *arena)
 	while ((void *)chunk < maxheap)
 	{
 		size = CHUNKSIZE(chunk) - (8 * 3);
+		mp.used += size;
 		idx[0] = size >= LARGEBIN_MINSIZE;
 		idx[0] += size >= (MMAP_THRESHOLD >> 5);
 		if (idx[0] != idx[1])
@@ -71,9 +72,7 @@ void	show_alloc_mem(void)
 
 	pthread_mutex_lock(&g_mp.global);
 	pagemask = g_mp.pagesize - 1;
-	g_mp.used =
-		g_mp.narena * (HEAP_SIZE - ((sizeof(t_marena) + pagemask) & ~pagemask));
-	dump_large_pool();
+	g_mp.used = 0;
 	if (g_mp.arena)
 	{
 		arena = g_mp.arena->prev;
@@ -86,6 +85,7 @@ void	show_alloc_mem(void)
 			arena = arena->prev;
 		}
 	}
+	dump_large_pool();
 	ft_printf("Total : %lu\n", g_mp.used);
 	pthread_mutex_unlock(&g_mp.global);
 }

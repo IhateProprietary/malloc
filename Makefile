@@ -6,7 +6,7 @@
 #    By: jye <marvin@42.fr>                         +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2018/12/19 04:43:40 by jye               #+#    #+#              #
-#    Updated: 2019/01/03 03:34:48 by jye              ###   ########.fr        #
+#    Updated: 2019/01/04 05:54:45 by jye              ###   ########.fr        #
 #                                                                              #
 #******************************************************************************#
 
@@ -18,7 +18,9 @@ CFOLDER	= src
 HFOLDER	= src
 OFOLDER	= obj
 
-HOSTTYPE = $(shell uname -m)_$(shell uname -s)
+ifeq ($(HOSTTYPE),)
+	HOSTTYPE := $(shell uname -m)_$(shell uname -s)
+endif
 
 SRCS	= alloc_newchunk arena forsake_fastbins int_alloc_largebin int_free \
 		  int_malloc int_malloc_init int_realloc malloc_public sanity_check \
