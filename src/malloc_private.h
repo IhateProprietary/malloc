@@ -6,7 +6,7 @@
 /*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/03 03:25:30 by jye               #+#    #+#             */
-/*   Updated: 2019/01/03 03:35:25 by jye              ###   ########.fr       */
+/*   Updated: 2019/01/26 05:20:59 by jye              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 # include <unistd.h>
 # include <pthread.h>
 # include "type.h"
+# include "bin.h"
 
 # if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
 #  define MAP_ANONYMOUS MAP_ANON
@@ -66,26 +67,7 @@
 # define FASTBIN_MAXMEM		(64 * 1024)
 # define LARGEBIN_MINSIZE	(NSMALLBINS << 3)
 
-# define FASTBIN_INDEX(x) ((x) >> 3)
-# define SMALLBIN_INDEX(x) (FASTBIN_INDEX(x))
-# define LARGEBIN1_INDEX(x) (((x) >> 6) + 56)
-# define LARGEBIN2_INDEX(x) (((x) >> 9) + 91)
-# define LARGEBIN3_INDEX(x) (((x) >> 12) + 110)
-# define LARGEBIN4_INDEX(x) (((x) >> 15) + 119)
-# define LARGEBIN5_INDEX(x) (((x) >> 18) + 124)
-
-# define TER(cond, if_, else_) ((cond) ? (if_) : (else_))
-
 # define MIN(x, y) TER(x < y, x, y)
-
-# define BIN_INDEX1(x) TER(x < (64 << 3), SMALLBIN_INDEX(x), BIN_INDEX2(x))
-# define BIN_INDEX2(x) TER(((x) >> 6) <= 32, LARGEBIN1_INDEX(x), BIN_INDEX3(x))
-# define BIN_INDEX3(x) TER(((x) >> 9) <= 20, LARGEBIN2_INDEX(x), BIN_INDEX4(x))
-# define BIN_INDEX4(x) TER(((x) >> 12) <= 10, LARGEBIN3_INDEX(x), BIN_INDEX5(x))
-# define BIN_INDEX5(x) TER(((x) >> 15) <= 4, LARGEBIN4_INDEX(x), BIN_INDEX6(x))
-# define BIN_INDEX6(x) TER(((x) >> 18) <= 2, LARGEBIN5_INDEX(x), 126)
-# define LARGEBIN_INDEX(x) BIN_INDEX2(x)
-# define BIN_INDEX(x) BIN_INDEX1(x)
 
 extern t_mstate	g_mp;
 
