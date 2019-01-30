@@ -67,11 +67,9 @@ void	dump_large_pool(void)
 void	show_alloc_mem(void)
 {
 	t_marena	*arena;
-	size_t		pagemask;
 	void		*stop;
 
 	pthread_mutex_lock(&g_mp.global);
-	pagemask = g_mp.pagesize - 1;
 	g_mp.used = 0;
 	if (g_mp.arena)
 	{

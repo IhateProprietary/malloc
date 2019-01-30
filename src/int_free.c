@@ -49,7 +49,7 @@ void		int_free(void *ptr)
 	size = CHUNKSIZE(chunk);
 	if (size <= FASTBIN_MAXSIZE)
 	{
-		insert_fastbin(chunk, &arena->fastbins[FASTBIN_INDEX(size)]);
+		insert_fastbin(chunk, &arena->fastbins[fastbin_index(size)]);
 		arena->fastbinsize += size;
 		pthread_mutex_unlock(&arena->mutex);
 		return ;

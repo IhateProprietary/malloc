@@ -17,7 +17,7 @@ static void	insert_chunk_bin(t_marena *arena, t_mchunk *chunk)
 	int			idx;
 
 	unlink_chunk(chunk);
-	idx = BIN_INDEX(CHUNKSIZE(chunk));
+	idx = bin_index(CHUNKSIZE(chunk));
 	link_chunk(chunk, BIN_AT(arena, idx));
 }
 

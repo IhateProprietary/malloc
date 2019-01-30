@@ -24,7 +24,7 @@ endif
 
 SRCS	= alloc_newchunk arena forsake_fastbins int_alloc_largebin int_free \
 		  int_malloc int_malloc_init int_realloc malloc_public sanity_check \
-          unsortedbin show_alloc_mem malloc_public2
+          unsortedbin show_alloc_mem malloc_public2 bin
 CNAME	= $(addsuffix .c, $(SRCS))
 ONAME	= $(addsuffix .o, $(SRCS))
 

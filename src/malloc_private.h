@@ -19,7 +19,6 @@
 # include <unistd.h>
 # include <pthread.h>
 # include "type.h"
-# include "bin.h"
 
 # if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
 #  define MAP_ANONYMOUS MAP_ANON
@@ -67,7 +66,7 @@
 # define FASTBIN_MAXMEM		(64 * 1024)
 # define LARGEBIN_MINSIZE	(NSMALLBINS << 3)
 
-# define MIN(x, y) TER(x < y, x, y)
+# define MIN(x, y) (x < y ? x : y)
 
 extern t_mstate	g_mp;
 
@@ -91,5 +90,10 @@ t_mchunk	*alloc_unsortedbin(t_marena *arena, size_t size);
 t_mchunk	*consolidate_chunk(t_mchunk *chunk);
 void		forsake_fastbins(t_marena *arena);
 int			sanity_check(void *mem);
+
+int			fastbin_index(size_t x);
+int			smallbin_index(size_t x);
+int			largebin_index(size_t x);
+int			bin_index(size_t x);
 
 #endif

@@ -18,7 +18,7 @@ t_mchunk	*alloc_largebin(t_marena *arena, size_t size)
 	t_mchunk	*stop;
 	int			idx;
 
-	idx = LARGEBIN_INDEX(size);
+	idx = largebin_index(size);
 	while (idx < NBINS)
 	{
 		while (idx < (NBINS) && (chunk = BIN_AT(arena, idx))
