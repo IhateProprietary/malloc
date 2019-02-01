@@ -6,7 +6,7 @@
 /*   By: jye <marvin@42.fr>                         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/01/03 02:32:35 by jye               #+#    #+#             */
-/*   Updated: 2019/01/04 05:59:39 by jye              ###   ########.fr       */
+/*   Updated: 2019/02/01 17:17:30 by jye              ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,7 @@ void	dump_arena_pool(t_marena *arena)
 	{
 		size = CHUNKSIZE(chunk) - (8 * 3);
 		g_mp.used += size;
-		idx[0] = size >= LARGEBIN_MINSIZE;
-		idx[0] += size >= (MMAP_THRESHOLD >> 5);
+		idx[0] = size >= LARGEBIN_MINSIZE + size >= (MMAP_THRESHOLD >> 5);
 		if (idx[0] != idx[1])
 		{
 			ft_printf("%s: %p\n", human_size[idx[0]], chunk);
